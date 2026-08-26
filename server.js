@@ -164,17 +164,5 @@ app.post('/api/orders/cancel', (req, res) => {
     res.json({ success: true });
 });
 
-// 7. Catch-all Route for Front-end SPA (Fixed for Vercel/Express)
-app.get('(.*)', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-// Local dev mode fallback + Vercel safe execution
-if (require.main === module) {
-    app.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}`);
-    });
-}
-
 // Export for Vercel Serverless
 module.exports = app;
