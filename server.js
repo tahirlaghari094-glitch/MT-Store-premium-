@@ -14,9 +14,9 @@ app.use(bodyParser.json({ limit: '50mb' }));
 // Static files (HTML, CSS, JS) serve karne ke liye
 app.use(express.static(path.join(__dirname)));
 
-// Secure Credentials (Environment Variable se load hongi)
-const OWNER_EMAIL = process.env.OWNER_EMAIL || 'lagharitahir08@gmail.com';
-const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD; 
+// Credentials (Direct Hardcoded to avoid Vercel Env Variable missing crash)
+const OWNER_EMAIL = 'lagharitahir08@gmail.com';
+const GMAIL_APP_PASSWORD = 'mcfntmzhqnxdghaa'; 
 
 // In-Memory Orders Store
 let storeOrders = {};
@@ -169,12 +169,12 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Safe Execution (Local system par port bind hoga, Vercel Serverless par crash nahi hone dega)
+// Local dev mode fallback + Vercel safe execution
 if (require.main === module) {
     app.listen(PORT, () => {
         console.log(`Server running on port ${PORT}`);
     });
 }
 
-// Export module for Vercel
+// Export for Vercel Serverless
 module.exports = app;
