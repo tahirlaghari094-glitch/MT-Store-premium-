@@ -18,7 +18,7 @@ app.use(express.static(path.join(__dirname)));
 const OWNER_EMAIL = process.env.OWNER_EMAIL || 'lagharitahir08@gmail.com';
 const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD; 
 
-// In-Memory Orders Store (Note: Vercel serverless functions har kuch der baad reset hoti hain)
+// In-Memory Orders Store
 let storeOrders = {};
 
 const transporter = nodemailer.createTransport({
@@ -92,7 +92,7 @@ function generateOrderEmailHTML(order, baseUrl) {
 
 // ---------------- API ROUTES ----------------
 
-// 1. Root Route (Fixed "Cannot GET /" error)
+// 1. Root Route
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
@@ -169,12 +169,12 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Local / Server listen
-if (process.env.NODE_ENV !== 'production') {
+// Safe Execution (Local system par port bind hoga, Vercel Serverless par crash nahi hone dega)
+if (require.main === module) {
     app.listen(PORT, () => {
         console.log(`Server running on port ${PORT}`);
     });
 }
 
-// Export for Vercel Serverless
+// Export module for Vercel
 module.exports = app;
