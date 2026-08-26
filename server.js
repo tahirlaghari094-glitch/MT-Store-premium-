@@ -164,8 +164,8 @@ app.post('/api/orders/cancel', (req, res) => {
     res.json({ success: true });
 });
 
-// 7. Catch-all Route for Front-end SPA
-app.get('*', (req, res) => {
+// 7. Catch-all Route for Front-end SPA (Fixed for Vercel/Express)
+app.get('(.*)', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
