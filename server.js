@@ -10,13 +10,15 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(bodyParser.json({ limit: '50mb' }));
+
+// Static files (HTML, CSS, JS) serve karne ke liye
 app.use(express.static(path.join(__dirname)));
 
-// Store Owner Credentials
-const OWNER_EMAIL = 'lagharitahir08@gmail.com';
-const GMAIL_APP_PASSWORD = 'mcfntmzhqnxdghaa';
+// Secure Credentials (Environment Variable se load hongi)
+const OWNER_EMAIL = process.env.OWNER_EMAIL || 'lagharitahir08@gmail.com';
+const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD; 
 
-// In-Memory Orders Store (For Email Approval State Tracking)
+// In-Memory Orders Store (Note: Vercel serverless functions har kuch der baad reset hoti hain)
 let storeOrders = {};
 
 const transporter = nodemailer.createTransport({
@@ -29,16 +31,16 @@ const transporter = nodemailer.createTransport({
 
 // Helper for generating styled HTML Email with Buttons
 function generateOrderEmailHTML(order, baseUrl) {
-    const itemsList = order.cart_items.map(item => `
+    const itemsList = order.cart_items ? order.cart_items.map(item => `
         <tr style="border-bottom: 1px solid #1e293b;">
             <td style="padding: 10px; color: #f8fafc; font-size: 13px;">${item.name} (${item.size})</td>
             <td style="padding: 10px; color: #94a3b8; font-size: 13px; text-align: center;">${item.qty}</td>
             <td style="padding: 10px; color: #38bdf8; font-size: 13px; text-align: right; font-weight: bold;">Rs. ${(item.price * item.qty).toLocaleString()}</td>
         </tr>
-    `).join('');
+    `).join('') : '';
 
     const easypaisaDetails = order.paymentMethod === 'Easypaisa' ? `
-        <div style="background-color: #064e3b; border: 1px solid #059669; padding: 12px; rounded-radius: 8px; margin-top: 15px;">
+        <div style="background-color: #064e3b; border: 1px solid #059669; padding: 12px; border-radius: 8px; margin-top: 15px;">
             <p style="color: #34d399; margin: 0; font-size: 13px; font-weight: bold;">Easypaisa Payment Details:</p>
             <p style="color: #ecfdf5; margin: 4px 0 0 0; font-size: 12px;"><b>Account Name:</b> ${order.easypaisaAccountName || 'N/A'}</p>
             <p style="color: #ecfdf5; margin: 2px 0 0 0; font-size: 12px;"><b>Account Number:</b> ${order.easypaisaAccountNo || 'N/A'}</p>
@@ -79,7 +81,7 @@ function generateOrderEmailHTML(order, baseUrl) {
             <h3 style="text-align: right; color: #38bdf8; font-size: 18px; margin-top: 15px;">Total: ${order.grand_total}</h3>
 
             <!-- Action Buttons -->
-            <div style="margin-top: 30px; padding-top: 20px; border-t: 1px solid #1e293b; text-align: center;">
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #1e293b; text-align: center;">
                 <a href="${approveUrl}" target="_blank" style="background-color: #16a34a; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px; display: inline-block; margin-right: 10px;">APPROVE ORDER</a>
                 <a href="${rejectUrl}" target="_blank" style="background-color: #dc2626; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px; display: inline-block;">REJECT ORDER</a>
             </div>
@@ -88,7 +90,14 @@ function generateOrderEmailHTML(order, baseUrl) {
     `;
 }
 
-// 1. New Order Route
+// ---------------- API ROUTES ----------------
+
+// 1. Root Route (Fixed "Cannot GET /" error)
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// 2. New Order Route
 app.post('/api/orders/new', async (req, res) => {
     const order = req.body;
     storeOrders[order.orderId] = { ...order, status: 'Placed', paymentDone: false };
@@ -113,7 +122,7 @@ app.post('/api/orders/new', async (req, res) => {
     }
 });
 
-// 2. Email Button Click: Approve Order
+// 3. Email Button Click: Approve Order
 app.get('/api/orders/approve/:orderId', (req, res) => {
     const { orderId } = req.params;
     if (storeOrders[orderId]) {
@@ -121,22 +130,22 @@ app.get('/api/orders/approve/:orderId', (req, res) => {
         storeOrders[orderId].paymentDone = true;
         res.send(`<h1 style="color: green; font-family: sans-serif; text-align: center; margin-top: 50px;">Order ${orderId} has been APPROVED!</h1>`);
     } else {
-        res.send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order not found.</h1>`);
+        res.send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order not found or state reset.</h1>`);
     }
 });
 
-// 3. Email Button Click: Reject Order
+// 4. Email Button Click: Reject Order
 app.get('/api/orders/reject/:orderId', (req, res) => {
     const { orderId } = req.params;
     if (storeOrders[orderId]) {
         storeOrders[orderId].status = 'Rejected';
         res.send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order ${orderId} has been REJECTED.</h1>`);
     } else {
-        res.send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order not found.</h1>`);
+        res.send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order not found or state reset.</h1>`);
     }
 });
 
-// 4. Order Status Polling Route
+// 5. Order Status Polling Route
 app.get('/api/orders/status/:orderId', (req, res) => {
     const { orderId } = req.params;
     if (storeOrders[orderId]) {
@@ -146,7 +155,7 @@ app.get('/api/orders/status/:orderId', (req, res) => {
     }
 });
 
-// 5. Order Cancel Route
+// 6. Order Cancel Route
 app.post('/api/orders/cancel', (req, res) => {
     const { orderId } = req.body;
     if (storeOrders[orderId]) {
@@ -155,6 +164,17 @@ app.post('/api/orders/cancel', (req, res) => {
     res.json({ success: true });
 });
 
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+// 7. Catch-all Route for Front-end SPA
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
+
+// Local / Server listen
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+    });
+}
+
+// Export for Vercel Serverless
+module.exports = app;
