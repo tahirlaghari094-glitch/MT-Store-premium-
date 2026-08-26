@@ -14,7 +14,7 @@ app.use(bodyParser.json({ limit: '50mb' }));
 // Static files (HTML, CSS, JS) serve karne ke liye
 app.use(express.static(path.join(__dirname)));
 
-// Credentials (Direct Hardcoded to avoid Vercel Env Variable missing crash)
+// Credentials
 const OWNER_EMAIL = 'lagharitahir08@gmail.com';
 const GMAIL_APP_PASSWORD = 'mcfntmzhqnxdghaa'; 
 
