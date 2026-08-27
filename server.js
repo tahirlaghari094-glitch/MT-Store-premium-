@@ -2,167 +2,120 @@ const express = require('express');
 const nodemailer = require('nodemailer');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
-app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.json({ limit: '10000000000000000mb' }));
 
-// Static files (HTML, CSS, JS) serve karne ke liye
-app.use(express.static(path.join(__dirname)));
-
-// Credentials
+// Store Owner Credentials
 const OWNER_EMAIL = 'lagharitahir08@gmail.com';
-const GMAIL_APP_PASSWORD = 'mcfntmzhqnxdghaa'; 
+const GMAIL_APP_PASSWORD = 'mcfntmzhqnxdghaa'; // App Password Configured
 
-// In-Memory Orders Store
-let storeOrders = {};
-
+// Configure Nodemailer Transporter
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: OWNER_EMAIL,
-        pass: GMAIL_APP_PASSWORD,
+        user: lagharitahir08@gmail.com,
+        pass: mcfntmzhqnxdghaa,
     }
 });
 
-// Helper for generating styled HTML Email with Buttons
-function generateOrderEmailHTML(order, baseUrl) {
-    const itemsList = order.cart_items ? order.cart_items.map(item => `
-        <tr style="border-bottom: 1px solid #1e293b;">
-            <td style="padding: 10px; color: #f8fafc; font-size: 13px;">${item.name} (${item.size})</td>
-            <td style="padding: 10px; color: #94a3b8; font-size: 13px; text-align: center;">${item.qty}</td>
-            <td style="padding: 10px; color: #38bdf8; font-size: 13px; text-align: right; font-weight: bold;">Rs. ${(item.price * item.qty).toLocaleString()}</td>
+// Helper function to build HTML email content
+function buildOrderEmailHTML(title, order) {
+    const itemsHTML = order.cart_items.map(item => `
+        <tr style="border-bottom: 1px solid #e2e8f0;">
+            <td style="padding: 10px;">
+                <img src="${item.image}" alt="${item.name}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 6px;" />
+            </td>
+            <td style="padding: 10px; font-family: Arial, sans-serif;">
+                <strong style="color: #0f172a;">${item.name}</strong><br/>
+                <span style="font-size: 12px; color: #64748b;">Size: ${item.size} | Qty: ${item.qty}</span>
+            </td>
+            <td style="padding: 10px; font-family: Arial, sans-serif; font-weight: bold; color: #1d4ed8; text-align: right;">
+                Rs. ${(item.price * item.qty).toLocaleString()}
+            </td>
         </tr>
-    `).join('') : '';
-
-    const easypaisaDetails = order.paymentMethod === 'Easypaisa' ? `
-        <div style="background-color: #064e3b; border: 1px solid #059669; padding: 12px; border-radius: 8px; margin-top: 15px;">
-            <p style="color: #34d399; margin: 0; font-size: 13px; font-weight: bold;">Easypaisa Payment Details:</p>
-            <p style="color: #ecfdf5; margin: 4px 0 0 0; font-size: 12px;"><b>Account Name:</b> ${order.easypaisaAccountName || 'N/A'}</p>
-            <p style="color: #ecfdf5; margin: 2px 0 0 0; font-size: 12px;"><b>Account Number:</b> ${order.easypaisaAccountNo || 'N/A'}</p>
-            <p style="color: #ecfdf5; margin: 2px 0 0 0; font-size: 12px;"><b>TRX ID:</b> ${order.trxId || 'N/A'}</p>
-        </div>
-    ` : '';
-
-    const approveUrl = `${baseUrl}/api/orders/approve/${order.orderId}`;
-    const rejectUrl = `${baseUrl}/api/orders/reject/${order.orderId}`;
+    `).join('');
 
     return `
-    <div style="background-color: #090d16; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; color: #f8fafc;">
-        <div style="max-width: 600px; margin: 0 auto; background-color: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 24px;">
-            <h2 style="color: #38bdf8; margin-top: 0; font-size: 20px; border-bottom: 1px solid #1e293b; padding-bottom: 12px;">NEW ORDER RECEIVED [${order.orderId}]</h2>
-            
-            <p style="font-size: 14px; color: #cbd5e1; margin: 5px 0;"><b>Customer Name:</b> ${order.customer_name}</p>
-            <p style="font-size: 14px; color: #cbd5e1; margin: 5px 0;"><b>Phone Number:</b> ${order.customer_phone}</p>
-            <p style="font-size: 14px; color: #cbd5e1; margin: 5px 0;"><b>User Email:</b> ${order.userEmail}</p>
-            <p style="font-size: 14px; color: #cbd5e1; margin: 5px 0;"><b>Delivery Address:</b> ${order.customer_address}</p>
-            <p style="font-size: 14px; color: #cbd5e1; margin: 5px 0;"><b>Payment Method:</b> <span style="color: #facc15; font-weight: bold;">${order.paymentMethod}</span></p>
+        <div style="font-family: Arial, sans-serif; background-color: #f8fafc; padding: 20px;">
+            <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 10px; padding: 25px; border: 1px solid #e2e8f0;">
+                <h2 style="color: #1d4ed8; margin-top: 0; text-transform: uppercase;">${title}</h2>
+                <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 15px 0;"/>
+                
+                <h3 style="color: #334155; margin-bottom: 8px;">Customer Information</h3>
+                <p style="margin: 4px 0; color: #475569;"><strong>Order ID:</strong> ${order.orderId}</p>
+                <p style="margin: 4px 0; color: #475569;"><strong>Customer Name:</strong> ${order.customer_name}</p>
+                <p style="margin: 4px 0; color: #475569;"><strong>Phone:</strong> ${order.customer_phone}</p>
+                <p style="margin: 4px 0; color: #475569;"><strong>Address:</strong> ${order.customer_address}</p>
+                <p style="margin: 4px 0; color: #475569;"><strong>Account Email:</strong> ${order.userEmail || 'Guest'}</p>
 
-            ${easypaisaDetails}
+                <h3 style="color: #334155; margin-top: 20px; margin-bottom: 8px;">Product Details</h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background-color: #f1f5f9; text-align: left; font-size: 12px; text-transform: uppercase;">
+                            <th style="padding: 8px;">Item</th>
+                            <th style="padding: 8px;">Details</th>
+                            <th style="padding: 8px; text-align: right;">Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${itemsHTML}
+                    </tbody>
+                </table>
 
-            <h3 style="color: #f8fafc; font-size: 15px; margin-top: 20px;">Order Items:</h3>
-            <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
-                <thead>
-                    <tr style="background-color: #1e293b; color: #94a3b8; font-size: 12px; text-align: left;">
-                        <th style="padding: 8px;">Item</th>
-                        <th style="padding: 8px; text-align: center;">Qty</th>
-                        <th style="padding: 8px; text-align: right;">Price</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${itemsList}
-                </tbody>
-            </table>
-
-            <h3 style="text-align: right; color: #38bdf8; font-size: 18px; margin-top: 15px;">Total: ${order.grand_total}</h3>
-
-            <!-- Action Buttons -->
-            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #1e293b; text-align: center;">
-                <a href="${approveUrl}" target="_blank" style="background-color: #16a34a; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px; display: inline-block; margin-right: 10px;">APPROVE ORDER</a>
-                <a href="${rejectUrl}" target="_blank" style="background-color: #dc2626; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px; display: inline-block;">REJECT ORDER</a>
+                <div style="margin-top: 20px; text-align: right; font-size: 16px;">
+                    <strong>Total Amount: </strong>
+                    <span style="color: #2563eb; font-weight: bold; font-size: 18px;">${order.grand_total}</span>
+                </div>
             </div>
         </div>
-    </div>
     `;
 }
 
-// ---------------- API ROUTES ----------------
-
-// 1. Root Route
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-// 2. New Order Route
+// 1. API Endpoint: New Order Placed
 app.post('/api/orders/new', async (req, res) => {
-    const order = req.body;
-    storeOrders[order.orderId] = { ...order, status: 'Placed', paymentDone: false };
-
-    const host = req.get('host');
-    const protocol = req.protocol;
-    const baseUrl = `${protocol}://${host}`;
-
-    const mailOptions = {
-        from: `"MT Store" <${OWNER_EMAIL}>`,
-        to: OWNER_EMAIL,
-        subject: `New Order #${order.orderId} - ${order.paymentMethod}`,
-        html: generateOrderEmailHTML(order, baseUrl)
-    };
-
     try {
+        const order = req.body;
+
+        const mailOptions = {
+            from: `"Qureshi Clothes Store" <${OWNER_EMAIL}>`,
+            to: OWNER_EMAIL,
+            subject: `🚨 You Have Received A New Order: ${order.orderId}`,
+            html: buildOrderEmailHTML('You Have Received A New Order', order)
+        };
+
         await transporter.sendMail(mailOptions);
-        res.status(200).json({ success: true, message: 'Order created and email sent' });
-    } catch (err) {
-        console.error('Email error:', err);
-        res.status(500).json({ success: false, error: err.message });
+        res.status(200).json({ success: true, message: 'New order email sent.' });
+    } catch (error) {
+        console.error('Error sending new order email:', error);
+        res.status(500).json({ success: false, message: 'Failed to send email.' });
     }
 });
 
-// 3. Email Button Click: Approve Order
-app.get('/api/orders/approve/:orderId', (req, res) => {
-    const { orderId } = req.params;
-    if (storeOrders[orderId]) {
-        storeOrders[orderId].status = 'Approved';
-        storeOrders[orderId].paymentDone = true;
-        res.send(`<h1 style="color: green; font-family: sans-serif; text-align: center; margin-top: 50px;">Order ${orderId} has been APPROVED!</h1>`);
-    } else {
-        res.send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order not found or state reset.</h1>`);
+// 2. API Endpoint: Order Cancelled
+app.post('/api/orders/cancel', async (req, res) => {
+    try {
+        const order = req.body;
+
+        const mailOptions = {
+            from: `"Qureshi Clothes Store" <${OWNER_EMAIL}>`,
+            to: OWNER_EMAIL,
+            subject: `❌ An Order Is Cancelled: ${order.orderId}`,
+            html: buildOrderEmailHTML('An Order Is Cancelled', order)
+        };
+
+        await transporter.sendMail(mailOptions);
+        res.status(200).json({ success: true, message: 'Order cancellation email sent.' });
+    } catch (error) {
+        console.error('Error sending cancellation email:', error);
+        res.status(500).json({ success: false, message: 'Failed to send email.' });
     }
 });
 
-// 4. Email Button Click: Reject Order
-app.get('/api/orders/reject/:orderId', (req, res) => {
-    const { orderId } = req.params;
-    if (storeOrders[orderId]) {
-        storeOrders[orderId].status = 'Rejected';
-        res.send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order ${orderId} has been REJECTED.</h1>`);
-    } else {
-        res.send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order not found or state reset.</h1>`);
-    }
+app.listen(PORT, () => {
+    console.log(`Server is active on http://localhost:3000`);
 });
-
-// 5. Order Status Polling Route
-app.get('/api/orders/status/:orderId', (req, res) => {
-    const { orderId } = req.params;
-    if (storeOrders[orderId]) {
-        res.json({ status: storeOrders[orderId].status, paymentDone: storeOrders[orderId].paymentDone });
-    } else {
-        res.status(404).json({ error: 'Order not found' });
-    }
-});
-
-// 6. Order Cancel Route
-app.post('/api/orders/cancel', (req, res) => {
-    const { orderId } = req.body;
-    if (storeOrders[orderId]) {
-        storeOrders[orderId].status = 'Cancelled';
-    }
-    res.json({ success: true });
-});
-
-// Export for Vercel Serverless
-module.exports = app;
