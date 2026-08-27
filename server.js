@@ -11,10 +11,10 @@ app.use(cors());
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(express.static(path.join(__dirname)));
 
-// Use Environment Variables — never hardcode credentials in code
 const OWNER_EMAIL = process.env.OWNER_EMAIL || 'lagharitahir08@gmail.com';
 const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD;
 
+// Transporter Config (Secure Connection)
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -23,28 +23,20 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-transporter.verify((err, success) => {
-    if (err) {
-        console.error('❌ EMAIL CONFIG ERROR:', err.message);
-    } else {
-        console.log('✅ Email server ready to send messages');
-    }
-});
-
 let storeOrders = {};
 
 function buildOrderEmailHTML(title, order, baseUrl) {
-    const itemsHTML = order.cart_items.map(item => `
+    const itemsHTML = (order.cart_items || []).map(item => `
         <tr style="border-bottom: 1px solid #e2e8f0;">
             <td style="padding: 10px;">
-                <img src="${item.image}" alt="${item.name}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 6px;" />
+                <img src="${item.image \vert{}\vert{} ''}" alt="${item.name}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 6px;" />
             </td>
             <td style="padding: 10px; font-family: Arial, sans-serif;">
                 <strong style="color: #0f172a;">${item.name}</strong><br/>
-                <span style="font-size: 12px; color: #64748b;">Size: ${item.size} | Qty: ${item.qty}</span>
+                <span style="font-size: 12px; color: #64748b;">Size: ${item.size} \vert{} Qty:${item.qty}</span>
             </td>
             <td style="padding: 10px; font-family: Arial, sans-serif; font-weight: bold; color: #1d4ed8; text-align: right;">
-                Rs. ${(item.price * item.qty).toLocaleString()}
+                Rs. ${((item.price || 0) * (item.qty || 1)).toLocaleString()}
             </td>
         </tr>
     `).join('');
@@ -94,11 +86,15 @@ app.get('/', (req, res) => {
 
 app.post('/api/orders/new', async (req, res) => {
     try {
+        if (!process.env.GMAIL_APP_PASSWORD) {
+            throw new Error("GMAIL_APP_PASSWORD Environment Variable missing!");
+        }
+
         const order = req.body;
         storeOrders[order.orderId] = { ...order, status: 'Placed', paymentDone: false };
 
         const host = req.get('host');
-        const protocol = req.protocol;
+        const protocol = req.headers['x-forwarded-proto'] || req.protocol;
         const baseUrl = `${protocol}://${host}`;
 
         const mailOptions = {
@@ -108,12 +104,12 @@ app.post('/api/orders/new', async (req, res) => {
             html: buildOrderEmailHTML('You Have Received A New Order', order, baseUrl)
         };
 
-        await transporter.sendMail(mailOptions);
-        console.log(`✅ Order email sent for ${order.orderId}`);
+        const info = await transporter.sendMail(mailOptions);
+        console.log(`✅ Order email sent successfully: ${info.messageId}`);
         res.status(200).json({ success: true, message: 'New order email sent.' });
     } catch (error) {
-        console.error('❌ Error sending new order email:', error.message);
-        res.status(500).json({ success: false, message: error.message });
+        console.error('❌ Error sending order email:', error);
+        res.status(500).json({ success: false, error: error.message });
     }
 });
 
@@ -131,12 +127,12 @@ app.post('/api/orders/cancel', async (req, res) => {
             html: buildOrderEmailHTML('An Order Is Cancelled', order, '')
         };
 
-        await transporter.sendMail(mailOptions);
-        console.log(`✅ Cancel email sent for ${order.orderId}`);
+        const info = await transporter.sendMail(mailOptions);
+        console.log(`✅ Cancel email sent successfully: ${info.messageId}`);
         res.status(200).json({ success: true, message: 'Order cancellation email sent.' });
     } catch (error) {
-        console.error('❌ Error sending cancellation email:', error.message);
-        res.status(500).json({ success: false, message: error.message });
+        console.error('❌ Error sending cancellation email:', error);
+        res.status(500).json({ success: false, error: error.message });
     }
 });
 
@@ -147,7 +143,7 @@ app.get('/api/orders/approve/:orderId', (req, res) => {
         storeOrders[orderId].paymentDone = true;
         res.send(`<h1 style="color: green; font-family: sans-serif; text-align: center; margin-top: 50px;">Order ${orderId} has been APPROVED!</h1>`);
     } else {
-        res.send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order not found or state reset.</h1>`);
+        res.send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order state reset or completed.</h1>`);
     }
 });
 
@@ -157,7 +153,7 @@ app.get('/api/orders/reject/:orderId', (req, res) => {
         storeOrders[orderId].status = 'Rejected';
         res.send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order ${orderId} has been REJECTED.</h1>`);
     } else {
-        res.send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order not found or state reset.</h1>`);
+        res.send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order state reset or completed.</h1>`);
     }
 });
 
