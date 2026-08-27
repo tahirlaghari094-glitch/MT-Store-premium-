@@ -8,18 +8,18 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
-app.use(bodyParser.json({ limit: '10000000000000000mb' }));
+app.use(bodyParser.json({ limit: '50mb' }));
 
 // Store Owner Credentials
 const OWNER_EMAIL = 'lagharitahir08@gmail.com';
-const GMAIL_APP_PASSWORD = 'mcfntmzhqnxdghaa'; // App Password Configured
+const GMAIL_APP_PASSWORD = 'aiosjqbewpfpoyxu'; // App Password Configured
 
 // Configure Nodemailer Transporter
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: lagharitahir08@gmail.com,
-        pass: mcfntmzhqnxdghaa,
+        user: 'lagharitahir08@gmail'.com,
+        pass: 'aiosjqbewpfpoyxu',
     }
 });
 
@@ -83,7 +83,7 @@ app.post('/api/orders/new', async (req, res) => {
 
         const mailOptions = {
             from: `"Qureshi Clothes Store" <${OWNER_EMAIL}>`,
-            to: OWNER_EMAIL,
+            to: lagharitahir08@gmail.com,
             subject: `🚨 You Have Received A New Order: ${order.orderId}`,
             html: buildOrderEmailHTML('You Have Received A New Order', order)
         };
@@ -103,7 +103,7 @@ app.post('/api/orders/cancel', async (req, res) => {
 
         const mailOptions = {
             from: `"Qureshi Clothes Store" <${OWNER_EMAIL}>`,
-            to: OWNER_EMAIL,
+            to: lagharitahir08@gmail.com,
             subject: `❌ An Order Is Cancelled: ${order.orderId}`,
             html: buildOrderEmailHTML('An Order Is Cancelled', order)
         };
