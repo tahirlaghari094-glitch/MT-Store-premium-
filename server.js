@@ -11,14 +11,14 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(bodyParser.json({ limit: '50mb' }));
 
-// Static files (HTML, CSS, JS) serve karne ke liye
+// Static files serve karne ke liye
 app.use(express.static(path.join(__dirname)));
 
 // Secure Credentials (Environment Variable se load hongi)
 const OWNER_EMAIL = process.env.OWNER_EMAIL || 'lagharitahir08@gmail.com';
-const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD; 
+const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD;
 
-// In-Memory Orders Store (Note: Vercel serverless functions har kuch der baad reset hoti hain)
+// In-Memory Orders Store (Vercel Serverless par temporary context hold karta hai)
 let storeOrders = {};
 
 const transporter = nodemailer.createTransport({
@@ -29,7 +29,7 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// Helper for generating styled HTML Email with Buttons
+// Helper: Email HTML Template with Approve & Reject Buttons
 function generateOrderEmailHTML(order, baseUrl) {
     const itemsList = order.cart_items ? order.cart_items.map(item => `
         <tr style="border-bottom: 1px solid #1e293b;">
@@ -86,95 +86,111 @@ function generateOrderEmailHTML(order, baseUrl) {
                 <a href="${rejectUrl}" target="_blank" style="background-color: #dc2626; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px; display: inline-block;">REJECT ORDER</a>
             </div>
         </div>
-    </div>
-    `;
+    </div>`;
 }
 
-// ---------------- API ROUTES ----------------
-
-// 1. Root Route (Fixed "Cannot GET /" error)
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-// 2. New Order Route
+// 1. API: New Order Creation & Email Notification
 app.post('/api/orders/new', async (req, res) => {
-    const order = req.body;
-    storeOrders[order.orderId] = { ...order, status: 'Placed', paymentDone: false };
-
-    const host = req.get('host');
-    const protocol = req.protocol;
-    const baseUrl = `${protocol}://${host}`;
-
-    const mailOptions = {
-        from: `"MT Store" <${OWNER_EMAIL}>`,
-        to: OWNER_EMAIL,
-        subject: `New Order #${order.orderId} - ${order.paymentMethod}`,
-        html: generateOrderEmailHTML(order, baseUrl)
-    };
-
     try {
-        await transporter.sendMail(mailOptions);
-        res.status(200).json({ success: true, message: 'Order created and email sent' });
+        const orderData = req.body;
+        if (!orderData || !orderData.orderId) {
+            return res.status(400).json({ success: false, message: 'Invalid order data' });
+        }
+
+        orderData.status = 'Placed';
+        orderData.paymentDone = false;
+        storeOrders[orderData.orderId] = orderData;
+
+        const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+        const baseUrl = `${protocol}://${req.get('host')}`;
+
+        if (GMAIL_APP_PASSWORD) {
+            const mailOptions = {
+                from: `"MT Store Orders" <${OWNER_EMAIL}>`,
+                to: OWNER_EMAIL,
+                subject: `🛍️ New Order #${orderData.orderId} - ${orderData.customer_name}`,
+                html: generateOrderEmailHTML(orderData, baseUrl)
+            };
+
+            await transporter.sendMail(mailOptions);
+        }
+
+        res.status(200).json({ success: true, message: 'Order submitted and email sent.' });
     } catch (err) {
-        console.error('Email error:', err);
+        console.error('Error creating order:', err);
         res.status(500).json({ success: false, error: err.message });
     }
 });
 
-// 3. Email Button Click: Approve Order
+// 2. API: Approve Order (Triggers on Admin Email Click)
 app.get('/api/orders/approve/:orderId', (req, res) => {
     const { orderId } = req.params;
     if (storeOrders[orderId]) {
         storeOrders[orderId].status = 'Approved';
         storeOrders[orderId].paymentDone = true;
-        res.send(`<h1 style="color: green; font-family: sans-serif; text-align: center; margin-top: 50px;">Order ${orderId} has been APPROVED!</h1>`);
-    } else {
-        res.send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order not found or state reset.</h1>`);
     }
+    res.send(`
+        <div style="background-color: #090d16; color: #4ade80; font-family: sans-serif; text-align: center; padding: 50px; min-height: 100vh;">
+            <h1 style="font-size: 28px;">✅ Order #${orderId} Approved</h1>
+            <p style="color: #cbd5e1;">Payment status set to Approved/Done. Customer view will update on polling.</p>
+        </div>
+    `);
 });
 
-// 4. Email Button Click: Reject Order
+// 3. API: Reject Order (Triggers on Admin Email Click)
 app.get('/api/orders/reject/:orderId', (req, res) => {
     const { orderId } = req.params;
     if (storeOrders[orderId]) {
         storeOrders[orderId].status = 'Rejected';
-        res.send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order ${orderId} has been REJECTED.</h1>`);
-    } else {
-        res.send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order not found or state reset.</h1>`);
     }
+    res.send(`
+        <div style="background-color: #090d16; color: #f87171; font-family: sans-serif; text-align: center; padding: 50px; min-height: 100vh;">
+            <h1 style="font-size: 28px;">❌ Order #${orderId} Rejected</h1>
+            <p style="color: #cbd5e1;">Order status set to Rejected.</p>
+        </div>
+    `);
 });
 
-// 5. Order Status Polling Route
+// 4. API: Order Status Checking (For Frontend Client Polling)
 app.get('/api/orders/status/:orderId', (req, res) => {
     const { orderId } = req.params;
-    if (storeOrders[orderId]) {
-        res.json({ status: storeOrders[orderId].status, paymentDone: storeOrders[orderId].paymentDone });
+    const order = storeOrders[orderId];
+    if (order) {
+        res.json({ success: true, status: order.status, paymentDone: order.paymentDone });
     } else {
-        res.status(404).json({ error: 'Order not found' });
+        res.json({ success: false, message: 'Order state not cached on server runtime.' });
     }
 });
 
-// 6. Order Cancel Route
-app.post('/api/orders/cancel', (req, res) => {
-    const { orderId } = req.body;
-    if (storeOrders[orderId]) {
-        storeOrders[orderId].status = 'Cancelled';
+// 5. API: Order Cancellation Handler
+app.post('/api/orders/cancel', async (req, res) => {
+    try {
+        const { orderId } = req.body;
+        if (storeOrders[orderId]) {
+            storeOrders[orderId].status = 'Cancelled';
+        }
+
+        if (GMAIL_APP_PASSWORD) {
+            const mailOptions = {
+                from: `"MT Store Alerts" <${OWNER_EMAIL}>`,
+                to: OWNER_EMAIL,
+                subject: `⚠️ Order #${orderId} Cancelled by Customer`,
+                html: `<p style="font-family: sans-serif;">Customer cancelled Order <b>#${orderId}</b> within 24 hours.</p>`
+            };
+            await transporter.sendMail(mailOptions);
+        }
+
+        res.status(200).json({ success: true, message: 'Cancellation processed.' });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
     }
-    res.json({ success: true });
 });
 
-// 7. Catch-all Route for Front-end SPA
+// Serve frontend for all unmatched routes
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Local / Server listen
-if (process.env.NODE_ENV !== 'production') {
-    app.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}`);
-    });
-}
-
-// Export for Vercel Serverless
-module.exports = app;  
+app.listen(PORT, () => {
+    console.log(`MT Store server running on port ${PORT}`);
+});
