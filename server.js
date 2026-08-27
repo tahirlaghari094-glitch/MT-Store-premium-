@@ -11,14 +11,14 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(bodyParser.json({ limit: '50mb' }));
 
-// Static files serve karne ke liye
+// Serve static files
 app.use(express.static(path.join(__dirname)));
 
-// Secure Credentials (Environment Variable se load hongi)
+// Secure Credentials
 const OWNER_EMAIL = process.env.OWNER_EMAIL || 'lagharitahir08@gmail.com';
 const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD;
 
-// In-Memory Orders Store (Vercel Serverless par temporary context hold karta hai)
+// In-Memory Orders Store
 let storeOrders = {};
 
 const transporter = nodemailer.createTransport({
@@ -122,7 +122,7 @@ app.post('/api/orders/new', async (req, res) => {
     }
 });
 
-// 2. API: Approve Order (Triggers on Admin Email Click)
+// 2. API: Approve Order
 app.get('/api/orders/approve/:orderId', (req, res) => {
     const { orderId } = req.params;
     if (storeOrders[orderId]) {
@@ -132,12 +132,12 @@ app.get('/api/orders/approve/:orderId', (req, res) => {
     res.send(`
         <div style="background-color: #090d16; color: #4ade80; font-family: sans-serif; text-align: center; padding: 50px; min-height: 100vh;">
             <h1 style="font-size: 28px;">✅ Order #${orderId} Approved</h1>
-            <p style="color: #cbd5e1;">Payment status set to Approved/Done. Customer view will update on polling.</p>
+            <p style="color: #cbd5e1;">Payment status set to Approved/Done.</p>
         </div>
     `);
 });
 
-// 3. API: Reject Order (Triggers on Admin Email Click)
+// 3. API: Reject Order
 app.get('/api/orders/reject/:orderId', (req, res) => {
     const { orderId } = req.params;
     if (storeOrders[orderId]) {
@@ -151,7 +151,7 @@ app.get('/api/orders/reject/:orderId', (req, res) => {
     `);
 });
 
-// 4. API: Order Status Checking (For Frontend Client Polling)
+// 4. API: Order Status Checking
 app.get('/api/orders/status/:orderId', (req, res) => {
     const { orderId } = req.params;
     const order = storeOrders[orderId];
