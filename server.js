@@ -14,18 +14,19 @@ app.use(bodyParser.json({ limit: '50mb' }));
 // Static files (HTML, CSS, JS) serve karne ke liye
 app.use(express.static(path.join(__dirname)));
 
-// Secure Credentials (Environment Variable se load hongi)
+// Credentials & Env Variables
 const OWNER_EMAIL = process.env.OWNER_EMAIL || 'lagharitahir08@gmail.com';
-const GMAIL_APP_PASSWORD = process.env.aiosjqbewpfpoyxu; 
+const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD || 'aiosjqbewpfpoyxu'; 
 
-// In-Memory Orders Store (Note: Vercel serverless functions har kuch der baad reset hoti hain)
+// In-Memory Orders Store
 let storeOrders = {};
 
+// Transporter Configuration
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: lagharitahir08@gmail.com,
-        pass: aiosjqbewpfpoyxu,
+        user: OWNER_EMAIL,
+        pass: GMAIL_APP_PASSWORD,
     }
 });
 
@@ -92,12 +93,10 @@ function generateOrderEmailHTML(order, baseUrl) {
 
 // ---------------- API ROUTES ----------------
 
-// 1. Root Route (Fixed "Cannot GET /" error)
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// 2. New Order Route
 app.post('/api/orders/new', async (req, res) => {
     const order = req.body;
     storeOrders[order.orderId] = { ...order, status: 'Placed', paymentDone: false };
@@ -122,7 +121,6 @@ app.post('/api/orders/new', async (req, res) => {
     }
 });
 
-// 3. Email Button Click: Approve Order
 app.get('/api/orders/approve/:orderId', (req, res) => {
     const { orderId } = req.params;
     if (storeOrders[orderId]) {
@@ -134,7 +132,6 @@ app.get('/api/orders/approve/:orderId', (req, res) => {
     }
 });
 
-// 4. Email Button Click: Reject Order
 app.get('/api/orders/reject/:orderId', (req, res) => {
     const { orderId } = req.params;
     if (storeOrders[orderId]) {
@@ -145,7 +142,6 @@ app.get('/api/orders/reject/:orderId', (req, res) => {
     }
 });
 
-// 5. Order Status Polling Route
 app.get('/api/orders/status/:orderId', (req, res) => {
     const { orderId } = req.params;
     if (storeOrders[orderId]) {
@@ -155,7 +151,6 @@ app.get('/api/orders/status/:orderId', (req, res) => {
     }
 });
 
-// 6. Order Cancel Route
 app.post('/api/orders/cancel', (req, res) => {
     const { orderId } = req.body;
     if (storeOrders[orderId]) {
@@ -164,17 +159,14 @@ app.post('/api/orders/cancel', (req, res) => {
     res.json({ success: true });
 });
 
-// 7. Catch-all Route for Front-end SPA
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Local / Server listen
 if (process.env.NODE_ENV !== 'production') {
     app.listen(PORT, () => {
         console.log(`Server running on port ${PORT}`);
     });
 }
 
-// Export for Vercel Serverless
 module.exports = app;
