@@ -7,16 +7,18 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware Setup
+// Middleware
 app.use(cors());
 app.use(bodyParser.json({ limit: '50mb' }));
+
+// Static files (HTML, CSS, JS) serve karne ke liye
 app.use(express.static(path.join(__dirname)));
 
-// Credentials & Config
+// Secure Credentials (Environment Variable se load hongi)
 const OWNER_EMAIL = process.env.OWNER_EMAIL || 'lagharitahir08@gmail.com';
 const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD; 
 
-// In-Memory Order Storage (Note: Production backend deploy karne par MongoDB/Redis integrate kar sakty hain)
+// In-Memory Orders Store (Note: Vercel serverless functions har kuch der baad reset hoti hain)
 let storeOrders = {};
 
 const transporter = nodemailer.createTransport({
@@ -27,7 +29,7 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// Helper for generating styled HTML Email with Action Buttons
+// Helper for generating styled HTML Email with Buttons
 function generateOrderEmailHTML(order, baseUrl) {
     const itemsList = order.cart_items ? order.cart_items.map(item => `
         <tr style="border-bottom: 1px solid #1e293b;">
@@ -78,6 +80,7 @@ function generateOrderEmailHTML(order, baseUrl) {
 
             <h3 style="text-align: right; color: #38bdf8; font-size: 18px; margin-top: 15px;">Total: ${order.grand_total}</h3>
 
+            <!-- Action Buttons -->
             <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #1e293b; text-align: center;">
                 <a href="${approveUrl}" target="_blank" style="background-color: #16a34a; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px; display: inline-block; margin-right: 10px;">APPROVE ORDER</a>
                 <a href="${rejectUrl}" target="_blank" style="background-color: #dc2626; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px; display: inline-block;">REJECT ORDER</a>
@@ -87,12 +90,14 @@ function generateOrderEmailHTML(order, baseUrl) {
     `;
 }
 
-// ---------------- API Endpoints ----------------
+// ---------------- API ROUTES ----------------
 
+// 1. Root Route (Fixed "Cannot GET /" error)
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+// 2. New Order Route
 app.post('/api/orders/new', async (req, res) => {
     const order = req.body;
     storeOrders[order.orderId] = { ...order, status: 'Placed', paymentDone: false };
@@ -117,27 +122,30 @@ app.post('/api/orders/new', async (req, res) => {
     }
 });
 
+// 3. Email Button Click: Approve Order
 app.get('/api/orders/approve/:orderId', (req, res) => {
     const { orderId } = req.params;
     if (storeOrders[orderId]) {
         storeOrders[orderId].status = 'Approved';
         storeOrders[orderId].paymentDone = true;
-        res.send(`<h1 style="color: #16a34a; font-family: sans-serif; text-align: center; margin-top: 50px;">Order ${orderId} has been APPROVED!</h1>`);
+        res.send(`<h1 style="color: green; font-family: sans-serif; text-align: center; margin-top: 50px;">Order ${orderId} has been APPROVED!</h1>`);
     } else {
-        res.send(`<h1 style="color: #dc2626; font-family: sans-serif; text-align: center; margin-top: 50px;">Order not found or state reset.</h1>`);
+        res.send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order not found or state reset.</h1>`);
     }
 });
 
+// 4. Email Button Click: Reject Order
 app.get('/api/orders/reject/:orderId', (req, res) => {
     const { orderId } = req.params;
     if (storeOrders[orderId]) {
         storeOrders[orderId].status = 'Rejected';
-        res.send(`<h1 style="color: #dc2626; font-family: sans-serif; text-align: center; margin-top: 50px;">Order ${orderId} has been REJECTED.</h1>`);
+        res.send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order ${orderId} has been REJECTED.</h1>`);
     } else {
-        res.send(`<h1 style="color: #dc2626; font-family: sans-serif; text-align: center; margin-top: 50px;">Order not found or state reset.</h1>`);
+        res.send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order not found or state reset.</h1>`);
     }
 });
 
+// 5. Order Status Polling Route
 app.get('/api/orders/status/:orderId', (req, res) => {
     const { orderId } = req.params;
     if (storeOrders[orderId]) {
@@ -147,6 +155,7 @@ app.get('/api/orders/status/:orderId', (req, res) => {
     }
 });
 
+// 6. Order Cancel Route
 app.post('/api/orders/cancel', (req, res) => {
     const { orderId } = req.body;
     if (storeOrders[orderId]) {
@@ -155,14 +164,17 @@ app.post('/api/orders/cancel', (req, res) => {
     res.json({ success: true });
 });
 
+// 7. Catch-all Route for Front-end SPA
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+// Local / Server listen
 if (process.env.NODE_ENV !== 'production') {
     app.listen(PORT, () => {
         console.log(`Server running on port ${PORT}`);
     });
 }
 
-module.exports = app;
+// Export for Vercel Serverless
+module.exports = app;  
