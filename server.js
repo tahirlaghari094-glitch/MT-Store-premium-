@@ -11,7 +11,7 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(bodyParser.json({ limit: '50mb' }));
 
-// Static files (HTML, CSS, JS) serve karne ke liye
+// Static files serve karne ke liye
 app.use(express.static(path.join(__dirname)));
 
 // Credentials & Env Variables
@@ -21,12 +21,25 @@ const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD || 'aiosjqbewpfpoyxu';
 // In-Memory Orders Store
 let storeOrders = {};
 
-// Transporter Configuration
+// Transporter Configuration with Timeout & Port Settings
 const transporter = nodemailer.createTransport({
     service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
     auth: {
         user: OWNER_EMAIL,
         pass: GMAIL_APP_PASSWORD,
+    },
+    connectionTimeout: 10000, // 10 sec timeout
+});
+
+// DEBUG: Test Gmail SMTP Connection on Server Startup
+transporter.verify((error, success) => {
+    if (error) {
+        console.error('❌ GMAIL SMTP CONNECTION ERROR:', error.message);
+    } else {
+        console.log('✅ GMAIL SMTP IS READY TO SEND EMAILS');
     }
 });
 
@@ -97,8 +110,30 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+// DEBUG Endpoint to manually test email sending
+app.get('/api/test-email', async (req, res) => {
+    try {
+        let info = await transporter.sendMail({
+            from: `"MT Store Test" <${OWNER_EMAIL}>`,
+            to: OWNER_EMAIL,
+            subject: 'MT Store Test Email',
+            text: 'If you receive this, Nodemailer is working perfectly!'
+        });
+        res.json({ success: true, response: info.response });
+    } catch (err) {
+        console.error('❌ TEST EMAIL FAILED:', err);
+        res.status(500).json({ success: false, error: err.message, stack: err.stack });
+    }
+});
+
 app.post('/api/orders/new', async (req, res) => {
     const order = req.body;
+    console.log('📦 New Order Request Received:', order ? order.orderId : 'No Order ID');
+
+    if (!order || !order.orderId) {
+        return res.status(400).json({ success: false, error: 'Invalid order payload' });
+    }
+
     storeOrders[order.orderId] = { ...order, status: 'Placed', paymentDone: false };
 
     const host = req.get('host');
@@ -113,10 +148,11 @@ app.post('/api/orders/new', async (req, res) => {
     };
 
     try {
-        await transporter.sendMail(mailOptions);
+        const info = await transporter.sendMail(mailOptions);
+        console.log('✅ EMAIL SENT SUCCESSFULLY:', info.messageId);
         res.status(200).json({ success: true, message: 'Order created and email sent' });
     } catch (err) {
-        console.error('Email error:', err);
+        console.error('❌ SEND MAIL ERROR:', err);
         res.status(500).json({ success: false, error: err.message });
     }
 });
