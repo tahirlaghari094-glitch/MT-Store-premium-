@@ -19,13 +19,17 @@ app.use(express.static(path.join(__dirname, '../public')));
 const OWNER_EMAIL = process.env.OWNER_EMAIL || 'lagharitahir08@gmail.com';
 const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD || 'aiosjqbewpfpoyxu';
 
-// Firebase Admin Initialization (Database Sync for Vercel/Node)
+// Firebase Admin Initialization
 if (!admin.apps.length) {
+    const privateKey = process.env.FIREBASE_PRIVATE_KEY
+        ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
+        : undefined;
+
     admin.initializeApp({
         credential: admin.credential.cert({
             projectId: "mt-store-24open-21915",
             clientEmail: process.env.FIREBASE_CLIENT_EMAIL || "",
-            privateKey: (process.env.FIREBASE_PRIVATE_KEY || "").replace(/\\n/g, '\n')
+            privateKey: privateKey
         }),
         databaseURL: "https://mt-store-24open-21915-default-rtdb.firebaseio.com"
     });
@@ -41,7 +45,7 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// Helper for Order Items Table (Product Pic, Name, Qty, Price)
+// Helper for Order Items Table
 function generateItemsTableHTML(cartItems) {
     if (!cartItems || !cartItems.length) return '';
     return cartItems.map(item => `
@@ -195,7 +199,6 @@ app.post('/api/orders/new', async (req, res) => {
     const orderData = { ...order, status: 'Placed', paymentDone: false };
 
     try {
-        // Firebase Cloud Realtime Database mein save karein
         await db.ref(`orders/${order.orderId}`).set(orderData);
 
         const host = req.get('host');
