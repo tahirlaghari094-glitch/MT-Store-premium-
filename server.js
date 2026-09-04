@@ -23,9 +23,11 @@ const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD || 'aiosjqbewpfpoyxu';
 let db = null;
 try {
     if (!admin.apps.length) {
-        const privateKey = process.env.FIREBASE_PRIVATE_KEY
-            ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
-            : undefined;
+        let privateKey = process.env.FIREBASE_PRIVATE_KEY;
+        if (privateKey) {
+            // Newlines (\n) aur quotes ko format karne ke liye
+            privateKey = privateKey.replace(/^["']|["']$/g, '').replace(/\\n/g, '\n');
+        }
 
         if (privateKey && process.env.FIREBASE_CLIENT_EMAIL) {
             admin.initializeApp({
@@ -37,6 +39,7 @@ try {
                 databaseURL: "https://mt-store-24open-21915-default-rtdb.firebaseio.com"
             });
             db = admin.database();
+            console.log("Firebase Admin initialized successfully.");
         } else {
             console.warn("Firebase credentials missing in Environment Variables!");
         }
