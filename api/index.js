@@ -19,22 +19,33 @@ app.use(express.static(path.join(__dirname, '../public')));
 const OWNER_EMAIL = process.env.OWNER_EMAIL || 'lagharitahir08@gmail.com';
 const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD || 'aiosjqbewpfpoyxu';
 
-// Firebase Admin Initialization
-if (!admin.apps.length) {
-    const privateKey = process.env.FIREBASE_PRIVATE_KEY
-        ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
-        : undefined;
+// Firebase Admin Safe Initialization
+let db = null;
+try {
+    if (!admin.apps.length) {
+        const privateKey = process.env.FIREBASE_PRIVATE_KEY
+            ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
+            : undefined;
 
-    admin.initializeApp({
-        credential: admin.credential.cert({
-            projectId: "mt-store-24open-21915",
-            clientEmail: process.env.FIREBASE_CLIENT_EMAIL || "",
-            privateKey: privateKey
-        }),
-        databaseURL: "https://mt-store-24open-21915-default-rtdb.firebaseio.com"
-    });
+        if (privateKey && process.env.FIREBASE_CLIENT_EMAIL) {
+            admin.initializeApp({
+                credential: admin.credential.cert({
+                    projectId: "mt-store-24open-21915",
+                    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+                    privateKey: privateKey
+                }),
+                databaseURL: "https://mt-store-24open-21915-default-rtdb.firebaseio.com"
+            });
+            db = admin.database();
+        } else {
+            console.warn("Firebase credentials missing in Environment Variables!");
+        }
+    } else {
+        db = admin.database();
+    }
+} catch (error) {
+    console.error("Firebase Admin Initialization Error:", error.message);
 }
-const db = admin.database();
 
 // Transporter Configuration
 const transporter = nodemailer.createTransport({
@@ -167,6 +178,11 @@ function generateSignupEmailHTML(user) {
 
 // ---------------- API ROUTES ----------------
 
+// Root Route Test
+app.get('/api', (req, res) => {
+    res.json({ message: "MT Store API is running smoothly!" });
+});
+
 // Route: New User Registration Notification
 app.post('/api/users/signup', async (req, res) => {
     const user = req.body;
@@ -199,7 +215,9 @@ app.post('/api/orders/new', async (req, res) => {
     const orderData = { ...order, status: 'Placed', paymentDone: false };
 
     try {
-        await db.ref(`orders/${order.orderId}`).set(orderData);
+        if (db) {
+            await db.ref(`orders/${order.orderId}`).set(orderData);
+        }
 
         const host = req.get('host');
         const protocol = req.protocol;
@@ -224,10 +242,12 @@ app.post('/api/orders/cancel', async (req, res) => {
     const { orderId } = req.body;
     
     try {
-        const snapshot = await db.ref(`orders/${orderId}`).once('value');
-        let orderData = snapshot.val() || req.body;
-
-        await db.ref(`orders/${orderId}/status`).set('Cancelled');
+        let orderData = req.body;
+        if (db) {
+            const snapshot = await db.ref(`orders/${orderId}`).once('value');
+            orderData = snapshot.val() || req.body;
+            await db.ref(`orders/${orderId}/status`).set('Cancelled');
+        }
 
         const mailOptions = {
             from: `"MT Store Alerts" <${OWNER_EMAIL}>`,
@@ -247,6 +267,9 @@ app.post('/api/orders/cancel', async (req, res) => {
 app.get('/api/orders/approve/:orderId', async (req, res) => {
     const { orderId } = req.params;
     try {
+        if (!db) {
+            return res.status(500).send("Database not configured.");
+        }
         const ref = db.ref(`orders/${orderId}`);
         const snapshot = await ref.once('value');
         if (snapshot.exists()) {
@@ -264,6 +287,9 @@ app.get('/api/orders/approve/:orderId', async (req, res) => {
 app.get('/api/orders/reject/:orderId', async (req, res) => {
     const { orderId } = req.params;
     try {
+        if (!db) {
+            return res.status(500).send("Database not configured.");
+        }
         const ref = db.ref(`orders/${orderId}`);
         const snapshot = await ref.once('value');
         if (snapshot.exists()) {
@@ -281,6 +307,9 @@ app.get('/api/orders/reject/:orderId', async (req, res) => {
 app.get('/api/orders/status/:orderId', async (req, res) => {
     const { orderId } = req.params;
     try {
+        if (!db) {
+            return res.status(500).json({ error: "Database not configured." });
+        }
         const snapshot = await db.ref(`orders/${orderId}`).once('value');
         if (snapshot.exists()) {
             const data = snapshot.val();
