@@ -3,6 +3,7 @@ const nodemailer = require('nodemailer');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
+const admin = require('firebase-admin');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -15,11 +16,21 @@ app.use(bodyParser.json({ limit: '50mb' }));
 app.use(express.static(path.join(__dirname, '../public')));
 
 // Credentials
-const OWNER_EMAIL = 'lagharitahir08@gmail.com';
-const GMAIL_APP_PASSWORD = 'aiosjqbewpfpoyxu'; // Pass direct string
+const OWNER_EMAIL = process.env.OWNER_EMAIL || 'lagharitahir08@gmail.com';
+const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD || 'aiosjqbewpfpoyxu';
 
-// In-Memory Orders Store
-let storeOrders = {};
+// Firebase Admin Initialization (Database Sync for Vercel/Node)
+if (!admin.apps.length) {
+    admin.initializeApp({
+        credential: admin.credential.cert({
+            projectId: "mt-store-24open-21915",
+            clientEmail: process.env.FIREBASE_CLIENT_EMAIL || "",
+            privateKey: (process.env.FIREBASE_PRIVATE_KEY || "").replace(/\\n/g, '\n')
+        }),
+        databaseURL: "https://mt-store-24open-21915-default-rtdb.firebaseio.com"
+    });
+}
+const db = admin.database();
 
 // Transporter Configuration
 const transporter = nodemailer.createTransport({
@@ -45,7 +56,7 @@ function generateItemsTableHTML(cartItems) {
     `).join('');
 }
 
-// 1. New Order Email Template (🛍️ 📦 Emojis + Approve/Reject Buttons)
+// 1. New Order Email Template
 function generateOrderEmailHTML(order, baseUrl) {
     const itemsList = generateItemsTableHTML(order.cart_items);
     const easypaisaDetails = order.paymentMethod === 'Easypaisa' ? `
@@ -100,7 +111,7 @@ function generateOrderEmailHTML(order, baseUrl) {
     `;
 }
 
-// 2. Order Cancellation Email Template (❌ Cross Emoji + Product Pics)
+// 2. Order Cancellation Email Template
 function generateCancellationEmailHTML(order) {
     const itemsList = generateItemsTableHTML(order.cart_items);
     return `
@@ -134,7 +145,7 @@ function generateCancellationEmailHTML(order) {
     `;
 }
 
-// 3. New User Registration Email Template (👤 🎉 Emojis)
+// 3. New User Registration Email Template
 function generateSignupEmailHTML(user) {
     return `
     <div style="background-color: #090d16; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; color: #f8fafc;">
@@ -181,20 +192,23 @@ app.post('/api/orders/new', async (req, res) => {
         return res.status(400).json({ success: false, error: 'Invalid order payload' });
     }
 
-    storeOrders[order.orderId] = { ...order, status: 'Placed', paymentDone: false };
-
-    const host = req.get('host');
-    const protocol = req.protocol;
-    const baseUrl = `${protocol}://${host}`;
-
-    const mailOptions = {
-        from: `"MT Store" <${OWNER_EMAIL}>`,
-        to: OWNER_EMAIL,
-        subject: `🛍️ New Order #${order.orderId} - ${order.paymentMethod} 📦`,
-        html: generateOrderEmailHTML(order, baseUrl)
-    };
+    const orderData = { ...order, status: 'Placed', paymentDone: false };
 
     try {
+        // Firebase Cloud Realtime Database mein save karein
+        await db.ref(`orders/${order.orderId}`).set(orderData);
+
+        const host = req.get('host');
+        const protocol = req.protocol;
+        const baseUrl = `${protocol}://${host}`;
+
+        const mailOptions = {
+            from: `"MT Store" <${OWNER_EMAIL}>`,
+            to: OWNER_EMAIL,
+            subject: `🛍️ New Order #${order.orderId} - ${order.paymentMethod} 📦`,
+            html: generateOrderEmailHTML(order, baseUrl)
+        };
+
         await transporter.sendMail(mailOptions);
         res.status(200).json({ success: true, message: 'Order created and email sent' });
     } catch (err) {
@@ -205,20 +219,20 @@ app.post('/api/orders/new', async (req, res) => {
 // Route: Cancel Order Notification
 app.post('/api/orders/cancel', async (req, res) => {
     const { orderId } = req.body;
-    let orderData = storeOrders[orderId] || req.body;
-
-    if (storeOrders[orderId]) {
-        storeOrders[orderId].status = 'Cancelled';
-    }
-
-    const mailOptions = {
-        from: `"MT Store Alerts" <${OWNER_EMAIL}>`,
-        to: OWNER_EMAIL,
-        subject: `❌ Order Cancelled #${orderId}`,
-        html: generateCancellationEmailHTML(orderData)
-    };
-
+    
     try {
+        const snapshot = await db.ref(`orders/${orderId}`).once('value');
+        let orderData = snapshot.val() || req.body;
+
+        await db.ref(`orders/${orderId}/status`).set('Cancelled');
+
+        const mailOptions = {
+            from: `"MT Store Alerts" <${OWNER_EMAIL}>`,
+            to: OWNER_EMAIL,
+            subject: `❌ Order Cancelled #${orderId}`,
+            html: generateCancellationEmailHTML(orderData)
+        };
+
         await transporter.sendMail(mailOptions);
         res.status(200).json({ success: true, message: 'Cancellation email sent' });
     } catch (err) {
@@ -226,34 +240,53 @@ app.post('/api/orders/cancel', async (req, res) => {
     }
 });
 
-// Approve & Reject Routes
-app.get('/api/orders/approve/:orderId', (req, res) => {
+// Approve Route
+app.get('/api/orders/approve/:orderId', async (req, res) => {
     const { orderId } = req.params;
-    if (storeOrders[orderId]) {
-        storeOrders[orderId].status = 'Approved';
-        storeOrders[orderId].paymentDone = true;
-        res.send(`<h1 style="color: green; font-family: sans-serif; text-align: center; margin-top: 50px;">Order ${orderId} has been APPROVED!</h1>`);
-    } else {
-        res.send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order not found or state reset.</h1>`);
+    try {
+        const ref = db.ref(`orders/${orderId}`);
+        const snapshot = await ref.once('value');
+        if (snapshot.exists()) {
+            await ref.update({ status: 'Approved', paymentDone: true });
+            res.send(`<h1 style="color: green; font-family: sans-serif; text-align: center; margin-top: 50px;">Order ${orderId} has been APPROVED!</h1>`);
+        } else {
+            res.send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order not found.</h1>`);
+        }
+    } catch (err) {
+        res.status(500).send(`Error: ${err.message}`);
     }
 });
 
-app.get('/api/orders/reject/:orderId', (req, res) => {
+// Reject Route
+app.get('/api/orders/reject/:orderId', async (req, res) => {
     const { orderId } = req.params;
-    if (storeOrders[orderId]) {
-        storeOrders[orderId].status = 'Rejected';
-        res.send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order ${orderId} has been REJECTED.</h1>`);
-    } else {
-        res.send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order not found or state reset.</h1>`);
+    try {
+        const ref = db.ref(`orders/${orderId}`);
+        const snapshot = await ref.once('value');
+        if (snapshot.exists()) {
+            await ref.update({ status: 'Rejected' });
+            res.send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order ${orderId} has been REJECTED.</h1>`);
+        } else {
+            res.send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order not found.</h1>`);
+        }
+    } catch (err) {
+        res.status(500).send(`Error: ${err.message}`);
     }
 });
 
-app.get('/api/orders/status/:orderId', (req, res) => {
+// Route: Get Order Status
+app.get('/api/orders/status/:orderId', async (req, res) => {
     const { orderId } = req.params;
-    if (storeOrders[orderId]) {
-        res.json({ status: storeOrders[orderId].status, paymentDone: storeOrders[orderId].paymentDone });
-    } else {
-        res.status(404).json({ error: 'Order not found' });
+    try {
+        const snapshot = await db.ref(`orders/${orderId}`).once('value');
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            res.json({ status: data.status, paymentDone: data.paymentDone });
+        } else {
+            res.status(404).json({ error: 'Order not found' });
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
 });
 
