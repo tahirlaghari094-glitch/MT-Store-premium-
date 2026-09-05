@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <!-- Firebase SDKs (compat build — simplest for plain <script> usage) -->
+    <!-- Firebase SDKs (compat build) -->
     <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
@@ -55,7 +55,6 @@
         }
         .animate-toast { animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
-        /* Simple spinner for loading states */
         .spinner {
             border: 3px solid rgba(59,130,246,0.2);
             border-top-color: #3b82f6;
@@ -71,7 +70,7 @@
 
     <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
 
-    <!-- GLOBAL LOADING OVERLAY (shown while Firebase data is first loading) -->
+    <!-- GLOBAL LOADING OVERLAY -->
     <div id="global-loading-overlay" class="fixed inset-0 bg-slate-950 z-[60] flex flex-col items-center justify-center gap-4">
         <div class="spinner"></div>
         <p class="text-xs text-slate-400 uppercase tracking-widest font-bold">Connecting to store...</p>
@@ -529,8 +528,6 @@
         const rtdb = firebase.database();
         const fbAuth = firebase.auth();
 
-        // Change this to your deployed backend URL (Render/Railway/etc).
-        // Leave as '' if the backend is served from the SAME origin as this page.
         const BACKEND_URL = '';
 
         // =================================================================
@@ -568,11 +565,11 @@
         };
 
         let state = {
-            clothes: [],           // array, synced from Firebase in real time
-            categories: [],        // array, synced from Firebase in real time
-            cart: [],               // stays local (per-browser, not shared data)
-            orders: [],             // array, synced from Firebase in real time (filtered client-side per user)
-            currentUser: null,      // { uid, name, email } — from Firebase Auth
+            clothes: [],           
+            categories: [],        
+            cart: [],              
+            orders: [],            
+            currentUser: null,     
             currentFilter: 'All',
             searchQuery: '',
             selectedSize: 'M',
@@ -583,13 +580,13 @@
                 deliveryFee: 300
             },
             isAdminLoggedIn: false,
-            uploadedImagesArray: [], // pasted URLs only now (no base64 file upload — see note in form)
+            uploadedImagesArray: [], 
             authMode: 'login',
             firebaseReady: false
         };
 
         // =================================================================
-        // TOAST / CONFIRM UI HELPERS (unchanged from original)
+        // TOAST / CONFIRM UI HELPERS
         // =================================================================
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
@@ -662,13 +659,8 @@
 
         // =================================================================
         // FIREBASE REALTIME LISTENERS
-        // Every one of these fires immediately on load AND every time the
-        // data changes anywhere (admin dashboard, another tab, etc). This is
-        // what actually makes "database sahi kaam kare" — no more manual
-        // localStorage/IndexedDB syncing needed.
         // =================================================================
         function attachRealtimeListeners() {
-            // --- Categories ---
             rtdb.ref('categories').on('value', (snap) => {
                 const val = snap.val();
                 if (val && Array.isArray(val) && val.length > 0) {
@@ -688,7 +680,6 @@
                 showToast('Could not load categories: ' + err.message, 'error');
             });
 
-            // --- Products / clothes ---
             rtdb.ref('clothes').on('value', (snap) => {
                 const val = snap.val();
                 if (val) {
@@ -696,7 +687,6 @@
                     state.clothes.sort((a, b) => b.id - a.id);
                 } else {
                     state.clothes = [];
-                    // Seed the database on first-ever run so the store isn't empty
                     rtdb.ref('clothes').set(initialClothes).catch(() => {});
                 }
                 renderHomeFeatured();
@@ -708,7 +698,6 @@
                 showToast('Could not load products: ' + err.message, 'error');
             });
 
-            // --- Store settings (delivery fee etc.) ---
             rtdb.ref('settings').on('value', (snap) => {
                 const val = snap.val();
                 if (val) {
@@ -724,7 +713,6 @@
                 }
             }, (err) => console.error('settings listener error:', err));
 
-            // --- Orders (all orders; filtered per-user when rendering) ---
             rtdb.ref('orders').on('value', (snap) => {
                 const val = snap.val();
                 if (val) {
@@ -741,10 +729,7 @@
             });
         }
 
-        let firebaseReadyFlags = { categories: false, clothes: false };
         function markFirebaseReady() {
-            // Hide the loading overlay once the two critical datasets have
-            // returned at least once (auth state is handled separately).
             const overlay = document.getElementById('global-loading-overlay');
             if (overlay && !overlay.classList.contains('hidden')) {
                 overlay.classList.add('hidden');
@@ -752,7 +737,7 @@
         }
 
         // =================================================================
-        // FIREBASE AUTH (replaces the old localStorage users[] system)
+        // FIREBASE AUTH
         // =================================================================
         function checkAuthOnStartup() {
             fbAuth.onAuthStateChanged((user) => {
@@ -787,13 +772,11 @@
                     return cred.user.updateProfile({ displayName: name }).then(() => cred.user);
                 })
                 .then((user) => {
-                    // Also store a lightweight profile record for admin visibility
                     return rtdb.ref('users/' + user.uid).set({
                         name, email, createdAt: Date.now()
                     });
                 })
                 .then(() => {
-                    // Notify backend (best-effort — order flow doesn't depend on this)
                     notifyBackend('/api/users/signup', { name, email }).catch(() => {});
                     document.getElementById('user-auth-modal').classList.add('hidden');
                     showToast("Account created successfully!", "success");
@@ -912,8 +895,7 @@
         }
 
         // =================================================================
-        // CART (kept local/per-browser via localStorage — cart is not
-        // shared data, so this is the correct place to still use it)
+        // CART
         // =================================================================
         function saveCart() {
             localStorage.setItem('mt_cart_pkr', JSON.stringify(state.cart));
@@ -1024,8 +1006,7 @@
         }
 
         // =================================================================
-        // CHECKOUT / ORDER PLACEMENT (writes to Firebase, notifies backend
-        // for email only — order data itself lives in Firebase either way)
+        // CHECKOUT / ORDER PLACEMENT
         // =================================================================
         function togglePaymentChoice(method) {
             state.selectedPaymentMethod = method;
@@ -1110,11 +1091,8 @@
             btnSubmit.innerText = "Processing Order...";
 
             try {
-                // 1. Write straight to Firebase Realtime Database (source of truth)
                 await rtdb.ref('orders/' + newOrder.orderId).set(newOrder);
 
-                // 2. Best-effort: ask backend to send the owner an email.
-                //    If this fails, the order is STILL saved — email is just a notification.
                 notifyBackend('/api/orders/new', newOrder).catch((err) => {
                     console.warn('Order email notification failed (order still saved):', err);
                 });
@@ -1134,8 +1112,6 @@
             }
         }
 
-        // Fire-and-forget helper to call the Node backend for emails.
-        // Never blocks or breaks the app if the backend is down/unreachable.
         async function notifyBackend(path, body) {
             const url = (BACKEND_URL || '') + path;
             const res = await fetch(url, {
@@ -1151,8 +1127,7 @@
         }
 
         // =================================================================
-        // ORDERS VIEW (reads from state.orders, which is kept live-synced
-        // by the Firebase listener in attachRealtimeListeners)
+        // ORDERS VIEW
         // =================================================================
         function renderOrdersView() {
             const container = document.getElementById('orders-history-container');
@@ -1457,9 +1432,7 @@
         }
 
         // =================================================================
-        // ADMIN (passcode gate stays as a simple client-side gate — same as
-        // the original. NOTE: for real security, gate WRITE ACCESS with
-        // Firebase Realtime Database Rules server-side, not just this UI gate)
+        // ADMIN
         // =================================================================
         function handleAdminBtnClick() {
             if (state.isAdminLoggedIn) openAdminDashboard();
@@ -1512,9 +1485,6 @@
             }
         }
 
-        // Image handling: URL-only now (base64 file uploads removed — see
-        // note in the form UI above for why. If you need real file uploads,
-        // use Firebase Storage and store the download URL here instead.)
         function renderUploadedPreviews() {
             const container = document.getElementById('image-preview-container');
             const grid = document.getElementById('preview-thumbs-grid');
@@ -1549,18 +1519,6 @@
         function syncUrlsInputFromPreview() {
             document.getElementById('form-urls').value = state.uploadedImagesArray.join(', ');
         }
-
-        // Live-preview whatever the admin pastes into the URL field
-        document.addEventListener('DOMContentLoaded', () => {
-            const urlsInput = document.getElementById('form-urls');
-            if (urlsInput) {
-                urlsInput.addEventListener('input', () => {
-                    const urls = urlsInput.value.split(',').map(u => u.trim()).filter(u => u.length > 0);
-                    state.uploadedImagesArray = urls;
-                    renderUploadedPreviews();
-                });
-            }
-        });
 
         async function handleFormSubmit(e) {
             e.preventDefault();
@@ -1661,24 +1619,30 @@
 
         async function handleCategoryAdd(e) {
             e.preventDefault();
-            const val = document.getElementById('new-cat-input').value.trim();
-            if (val && !state.categories.includes(val)) {
-                try {
-                    const updated = [...state.categories, val];
-                    await rtdb.ref('categories').set(updated);
-                    document.getElementById('new-cat-input').value = '';
-                    showToast("Category added successfully!", "success");
-                } catch (err) {
-                    showToast('Failed to add category: ' + err.message, 'error');
-                }
+            const input = document.getElementById('new-cat-input');
+            const newCat = input.value.trim();
+            if (!newCat) return;
+
+            if (state.categories.some(c => c.toLowerCase() === newCat.toLowerCase())) {
+                showToast("Category already exists!", "warning");
+                return;
+            }
+
+            const updatedCategories = [...state.categories, newCat];
+            try {
+                await rtdb.ref('categories').set(updatedCategories);
+                input.value = '';
+                showToast("Category added!", "success");
+            } catch (err) {
+                showToast('Failed to add category: ' + err.message, 'error');
             }
         }
 
-        function deleteCategory(catName) {
-            showConfirm("Delete Category", `Delete category "${catName}"?`, async () => {
+        async function deleteCategory(catName) {
+            showConfirm("Delete Category", `Are you sure you want to delete category "${catName}"?`, async () => {
+                const updatedCategories = state.categories.filter(c => c.toLowerCase() !== catName.toLowerCase());
                 try {
-                    const updated = state.categories.filter(c => c !== catName);
-                    await rtdb.ref('categories').set(updated);
+                    await rtdb.ref('categories').set(updatedCategories);
                     showToast("Category deleted.", "info");
                 } catch (err) {
                     showToast('Failed to delete category: ' + err.message, 'error');
@@ -1686,14 +1650,48 @@
             });
         }
 
+        function renderAdminDashboard() {
+            renderAdminCategories();
+            renderAdminInventoryList();
+            renderAdminOrdersList();
+            document.getElementById('setting-delivery-fee').value = state.settings.deliveryFee;
+            document.getElementById('setting-free-limit').value = state.settings.freeDeliveryLimit;
+        }
+
         function renderAdminCategories() {
             const container = document.getElementById('admin-categories-tags');
             if (!container) return;
             container.innerHTML = state.categories.map(c => `
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-[11px] text-slate-300 font-bold">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-900 border border-slate-800 text-xs font-bold text-slate-300">
                     ${escapeHTML(c)}
-                    <button type="button" onclick="deleteCategory('${escapeHTML(c).replace(/'/g, "\\'")}')" class="text-rose-400 hover:text-rose-300 ml-1"><i class="fa-solid fa-xmark"></i></button>
+                    <button type="button" onclick="deleteCategory('${escapeHTML(c)}')" class="text-slate-500 hover:text-rose-400"><i class="fa-solid fa-xmark"></i></button>
                 </span>
+            `).join('');
+        }
+
+        function renderAdminInventoryList() {
+            const container = document.getElementById('admin-inventory-list');
+            if (!container) return;
+
+            if (state.clothes.length === 0) {
+                container.innerHTML = `<div class="text-xs text-slate-500 py-3 text-center">No products in database.</div>`;
+                return;
+            }
+
+            container.innerHTML = state.clothes.map(item => `
+                <div class="flex items-center justify-between p-3 bg-slate-900 border border-slate-800 rounded-lg text-xs">
+                    <div class="flex items-center gap-3">
+                        <img src="${escapeHTML(item.image)}" class="w-10 h-10 object-cover rounded bg-slate-950 border border-slate-800">
+                        <div>
+                            <h5 class="font-bold text-white line-clamp-1">${escapeHTML(item.name)}</h5>
+                            <span class="text-[10px] text-slate-400">Rs. ${item.price.toLocaleString()} | ${escapeHTML(item.category)} | ${item.isAvailable !== false ? '<span class="text-emerald-400 font-bold">In Stock</span>' : '<span class="text-rose-400 font-bold">Sold Out</span>'}</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="editCloth(${item.id})" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded text-[11px] font-bold"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="deleteCloth(${item.id})" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-rose-400 rounded text-[11px] font-bold"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
             `).join('');
         }
 
@@ -1705,119 +1703,70 @@
             if (badge) badge.innerText = `${state.orders.length} Orders`;
 
             if (state.orders.length === 0) {
-                container.innerHTML = `<div class="text-xs text-slate-500 text-center py-4">No customer orders yet.</div>`;
+                container.innerHTML = `<div class="text-xs text-slate-500 py-3 text-center">No customer orders placed yet.</div>`;
                 return;
             }
 
             container.innerHTML = state.orders.map(order => `
-                <div class="bg-slate-900 p-3 rounded-lg border border-slate-800 space-y-2 text-xs">
-                    <div class="flex flex-wrap justify-between items-center gap-2">
+                <div class="p-3 bg-slate-900 border border-slate-800 rounded-lg text-xs space-y-2">
+                    <div class="flex justify-between items-start gap-2 border-b border-slate-800 pb-2">
                         <div>
-                            <span class="text-[10px] font-mono font-bold text-blue-400">${escapeHTML(order.orderId)}</span>
-                            <span class="text-slate-300 font-bold ml-2">${escapeHTML(order.customer_name)} (${escapeHTML(order.customer_phone)})</span>
-                            ${order.trxId ? `
-                                <span class="text-[10px] text-emerald-400 font-mono ml-2">
-                                    TRX: ${escapeHTML(order.trxId)} ${order.easypaisaAccountName ? `(${escapeHTML(order.easypaisaAccountName)} - ${escapeHTML(order.easypaisaAccountNo)})` : ''}
-                                </span>
-                            ` : ''}
+                            <span class="text-[10px] font-bold text-blue-400 uppercase">${escapeHTML(order.orderId)}</span>
+                            <h5 class="font-bold text-white mt-0.5">${escapeHTML(order.customer_name)} (${escapeHTML(order.customer_phone)})</h5>
+                            <p class="text-[10px] text-slate-400">${escapeHTML(order.customer_address)}</p>
+                            ${order.trxId ? `<p class="text-[10px] text-emerald-400 font-mono mt-0.5">TRX: ${escapeHTML(order.trxId)} (${escapeHTML(order.easypaisaAccountName || '')})</p>` : ''}
                         </div>
-                        <div class="flex items-center gap-2">
-                            <span class="font-mono font-bold text-slate-200">${escapeHTML(order.grand_total)}</span>
-                            <select onchange="updateOrderStatus('${order.orderId}', this.value)" class="bg-slate-950 border border-slate-700 text-[11px] rounded px-2 py-1 text-slate-200 font-bold focus:outline-none focus:border-blue-500">
-                                <option value="Placed" ${order.status === 'Placed' ? 'selected' : ''}>Placed</option>
-                                <option value="Approved" ${order.status === 'Approved' ? 'selected' : ''}>Approved</option>
-                                <option value="Rejected" ${order.status === 'Rejected' ? 'selected' : ''}>Rejected</option>
-                                <option value="Processing" ${order.status === 'Processing' ? 'selected' : ''}>Processing</option>
-                                <option value="Shipped" ${order.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
-                                <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
-                                <option value="Cancelled" ${order.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
-                            </select>
+                        <div class="text-right">
+                            <span class="font-mono font-bold text-blue-400 block">${escapeHTML(order.grand_total)}</span>
+                            <span class="text-[10px] font-bold uppercase ${order.status === 'Approved' ? 'text-emerald-400' : order.status === 'Rejected' ? 'text-rose-400' : 'text-amber-400'}">${escapeHTML(order.status || 'Placed')}</span>
                         </div>
                     </div>
-                    <div class="text-[10px] text-slate-400">Address: ${escapeHTML(order.customer_address)}</div>
+                    <div class="flex justify-between items-center pt-1">
+                        <span class="text-[10px] text-slate-500">${new Date(order.timestamp).toLocaleString()}</span>
+                        <div class="flex gap-1.5">
+                            <button onclick="updateOrderStatus('${order.orderId}', 'Approved')" class="px-2 py-1 bg-emerald-950 border border-emerald-800 hover:bg-emerald-900 text-emerald-400 text-[10px] font-bold rounded uppercase">Approve</button>
+                            <button onclick="updateOrderStatus('${order.orderId}', 'Rejected')" class="px-2 py-1 bg-rose-950 border border-rose-800 hover:bg-rose-900 text-rose-400 text-[10px] font-bold rounded uppercase">Reject</button>
+                        </div>
+                    </div>
                 </div>
             `).join('');
         }
 
-        async function updateOrderStatus(orderId, newStatus) {
+        async function updateOrderStatus(orderId, status) {
             try {
-                const updates = { status: newStatus };
-                if (newStatus === 'Approved') updates.paymentDone = true;
-                await rtdb.ref('orders/' + orderId).update(updates);
-                showToast(`Order status updated to ${newStatus}`, "info");
-            } catch (err) {
-                showToast('Failed to update order: ' + err.message, 'error');
-            }
-        }
-
-        function renderAdminDashboard() {
-            renderAdminCategories();
-            renderAdminOrdersList();
-
-            document.getElementById('setting-delivery-fee').value = state.settings.deliveryFee;
-            document.getElementById('setting-free-limit').value = state.settings.freeDeliveryLimit;
-
-            const listContainer = document.getElementById('admin-inventory-list');
-            if (listContainer) {
-                if (state.clothes.length === 0) {
-                    listContainer.innerHTML = `<div class="text-xs text-slate-500 text-center py-4">No inventory items.</div>`;
-                    return;
+                await rtdb.ref('orders/' + orderId + '/status').set(status);
+                if (status === 'Approved') {
+                    await rtdb.ref('orders/' + orderId + '/paymentDone').set(true);
                 }
-                listContainer.innerHTML = state.clothes.map(c => {
-                    const thumb = (c.images && c.images.length > 0) ? c.images[0] : c.image;
-                    const avail = c.isAvailable !== false;
-                    return `
-                    <div class="flex justify-between items-center bg-slate-950 p-3 rounded-lg border border-slate-800">
-                        <div class="flex items-center gap-3">
-                            <img src="${escapeHTML(thumb)}" class="w-10 h-10 object-cover rounded bg-slate-900 border border-slate-800">
-                            <div>
-                                <p class="font-bold text-xs text-white">${escapeHTML(c.name)}</p>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-blue-400 font-mono text-[11px]">Rs. ${c.price.toLocaleString()}</span>
-                                    <span class="text-[10px] font-bold ${avail ? 'text-emerald-400' : 'text-rose-400'}">(${avail ? 'Available' : 'Sold Out'})</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <button onclick="editCloth(${c.id})" class="px-2.5 py-1 rounded bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500 hover:text-white text-[11px] font-bold transition">
-                                <i class="fa-solid fa-pen"></i> Edit
-                            </button>
-                            <button onclick="deleteCloth(${c.id})" class="px-2.5 py-1 rounded bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500 hover:text-white text-[11px] font-bold transition">
-                                <i class="fa-solid fa-trash"></i> Delete
-                            </button>
-                        </div>
-                    </div>
-                `}).join('');
+                showToast(`Order status updated to ${status}.`, "success");
+            } catch (err) {
+                showToast('Failed to update status: ' + err.message, 'error');
             }
         }
 
         // =================================================================
-        // APP INIT
+        // INIT
         // =================================================================
-        function initApp() {
-            state.isAdminLoggedIn = localStorage.getItem('mt_admin_auth') === 'true';
+        document.addEventListener('DOMContentLoaded', () => {
             loadCart();
-
-            renderBannerText();
-            renderUserAuthHeader();
-            renderCartView();
             updateCartBadge();
+
+            if (localStorage.getItem('mt_admin_auth') === 'true') {
+                state.isAdminLoggedIn = true;
+            }
+
+            const urlsInput = document.getElementById('form-urls');
+            if (urlsInput) {
+                urlsInput.addEventListener('input', () => {
+                    const urls = urlsInput.value.split(',').map(u => u.trim()).filter(u => u.length > 0);
+                    state.uploadedImagesArray = urls;
+                    renderUploadedPreviews();
+                });
+            }
 
             attachRealtimeListeners();
             checkAuthOnStartup();
-
-            // Safety net: force-hide the loading overlay after 6s even if
-            // something is slow/misconfigured, so the store never gets stuck
-            // on a blank spinner screen.
-            setTimeout(() => {
-                const overlay = document.getElementById('global-loading-overlay');
-                if (overlay) overlay.classList.add('hidden');
-            }, 6000);
-
-            setInterval(renderOrdersView, 10000); // keep the 24h cancel countdown live
-        }
-
-        window.onload = initApp;
+        });
     </script>
 </body>
 </html>
