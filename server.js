@@ -12,8 +12,9 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(bodyParser.json({ limit: '50mb' }));
 
-// Static files serve karne ke liye
-app.use(express.static(path.join(__dirname, '../public')));
+// Absolute Static Path for Vercel Serverless
+const publicDirectoryPath = path.join(process.cwd(), 'public');
+app.use(express.static(publicDirectoryPath));
 
 // Credentials
 const OWNER_EMAIL = process.env.OWNER_EMAIL || 'lagharitahir08@gmail.com';
@@ -326,7 +327,7 @@ app.get('/api/orders/status/:orderId', async (req, res) => {
 
 // Catch-all Route for Static index.html Serve
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/index.html'));
+    res.sendFile(path.join(publicDirectoryPath, 'index.html'));
 });
 
 if (process.env.NODE_ENV !== 'production') {
