@@ -3,7 +3,6 @@ const nodemailer = require('nodemailer');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
-const admin = require('firebase-admin');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -12,40 +11,15 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(bodyParser.json({ limit: '50mb' }));
 
-// Static Path Configuration
-const publicPath = path.join(process.cwd(), 'public');
-app.use(express.static(publicPath));
+// Static files serve karne ke liye
+app.use(express.static(path.join(__dirname, '../public')));
 
 // Credentials
-const OWNER_EMAIL = process.env.OWNER_EMAIL || 'lagharitahir08@gmail.com';
-const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD || 'aiosjqbewpfpoyxu';
+const OWNER_EMAIL = 'lagharitahir08@gmail.com';
+const GMAIL_APP_PASSWORD = 'aiosjqbewpfpoyxu'; // Pass direct string
 
-// Firebase Admin Initialization
-let db = null;
-try {
-    if (!admin.apps.length) {
-        let privateKey = process.env.FIREBASE_PRIVATE_KEY;
-        if (privateKey) {
-            privateKey = privateKey.replace(/^["']|["']$/g, '').replace(/\\n/g, '\n');
-        }
-
-        if (privateKey && process.env.FIREBASE_CLIENT_EMAIL) {
-            admin.initializeApp({
-                credential: admin.credential.cert({
-                    projectId: "mt-store-24open-21915",
-                    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-                    privateKey: privateKey
-                }),
-                databaseURL: "https://mt-store-24open-21915-default-rtdb.firebaseio.com"
-            });
-            db = admin.database();
-        }
-    } else {
-        db = admin.database();
-    }
-} catch (error) {
-    console.error("Firebase Initialization Error:", error.message);
-}
+// In-Memory Orders Store
+let storeOrders = {};
 
 // Transporter Configuration
 const transporter = nodemailer.createTransport({
@@ -56,7 +30,7 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// Helper for Order Items Table
+// Helper for Order Items Table (Product Pic, Name, Qty, Price)
 function generateItemsTableHTML(cartItems) {
     if (!cartItems || !cartItems.length) return '';
     return cartItems.map(item => `
@@ -71,7 +45,7 @@ function generateItemsTableHTML(cartItems) {
     `).join('');
 }
 
-// Email HTML Generators
+// 1. New Order Email Template (🛍️ 📦 Emojis + Approve/Reject Buttons)
 function generateOrderEmailHTML(order, baseUrl) {
     const itemsList = generateItemsTableHTML(order.cart_items);
     const easypaisaDetails = order.paymentMethod === 'Easypaisa' ? `
@@ -87,87 +61,206 @@ function generateOrderEmailHTML(order, baseUrl) {
     const rejectUrl = `${baseUrl}/api/orders/reject/${order.orderId}`;
 
     return `
-    <div style="background-color: #090d16; font-family: sans-serif; padding: 20px; color: #f8fafc;">
+    <div style="background-color: #090d16; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; color: #f8fafc;">
         <div style="max-width: 600px; margin: 0 auto; background-color: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 24px;">
-            <h2 style="color: #38bdf8; margin-top: 0; font-size: 20px;">🛍️ NEW ORDER RECEIVED [${order.orderId}]</h2>
-            <p style="font-size: 14px; color: #cbd5e1;"><b>Customer Name:</b> ${order.customer_name}</p>
-            <p style="font-size: 14px; color: #cbd5e1;"><b>Phone:</b> ${order.customer_phone}</p>
-            <p style="font-size: 14px; color: #cbd5e1;"><b>Email:</b> ${order.userEmail}</p>
-            <p style="font-size: 14px; color: #cbd5e1;"><b>Address:</b> ${order.customer_address}</p>
-            <p style="font-size: 14px; color: #cbd5e1;"><b>Payment Method:</b> <span style="color: #facc15;">${order.paymentMethod}</span></p>
+            <h2 style="color: #38bdf8; margin-top: 0; font-size: 20px; border-bottom: 1px solid #1e293b; padding-bottom: 12px;">🛍️ NEW ORDER RECEIVED 📦 [${order.orderId}]</h2>
+            
+            <p style="font-size: 14px; color: #cbd5e1; margin: 5px 0;"><b>Customer Name:</b> ${order.customer_name}</p>
+            <p style="font-size: 14px; color: #cbd5e1; margin: 5px 0;"><b>Phone Number:</b> ${order.customer_phone}</p>
+            <p style="font-size: 14px; color: #cbd5e1; margin: 5px 0;"><b>User Email:</b> ${order.userEmail}</p>
+            <p style="font-size: 14px; color: #cbd5e1; margin: 5px 0;"><b>Delivery Address:</b> ${order.customer_address}</p>
+            <p style="font-size: 14px; color: #cbd5e1; margin: 5px 0;"><b>Payment Method:</b> <span style="color: #facc15; font-weight: bold;">${order.paymentMethod}</span></p>
 
             ${easypaisaDetails}
 
-            <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+            <h3 style="color: #f8fafc; font-size: 15px; margin-top: 20px;">Order Items:</h3>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
                 <thead>
-                    <tr style="background-color: #1e293b; color: #94a3b8; font-size: 12px;">
-                        <th style="padding: 8px;">Image</th>
+                    <tr style="background-color: #1e293b; color: #94a3b8; font-size: 12px; text-align: left;">
+                        <th style="padding: 8px; text-align: center;">Image</th>
                         <th style="padding: 8px;">Item</th>
-                        <th style="padding: 8px;">Qty</th>
+                        <th style="padding: 8px; text-align: center;">Qty</th>
                         <th style="padding: 8px; text-align: right;">Price</th>
                     </tr>
                 </thead>
-                <tbody>${itemsList}</tbody>
+                <tbody>
+                    ${itemsList}
+                </tbody>
             </table>
 
-            <h3 style="text-align: right; color: #38bdf8; margin-top: 15px;">Total: ${order.grand_total}</h3>
+            <h3 style="text-align: right; color: #38bdf8; font-size: 18px; margin-top: 15px;">Total: ${order.grand_total}</h3>
 
-            <div style="margin-top: 25px; text-align: center;">
-                <a href="${approveUrl}" style="background-color: #16a34a; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold; margin-right: 10px;">APPROVE ORDER</a>
-                <a href="${rejectUrl}" style="background-color: #dc2626; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold;">REJECT ORDER</a>
+            <!-- Action Buttons -->
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #1e293b; text-align: center;">
+                <a href="${approveUrl}" target="_blank" style="background-color: #16a34a; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px; display: inline-block; margin-right: 10px;">APPROVE ORDER</a>
+                <a href="${rejectUrl}" target="_blank" style="background-color: #dc2626; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px; display: inline-block;">REJECT ORDER</a>
             </div>
         </div>
     </div>
     `;
 }
 
-// API Routes
-app.get('/api', (req, res) => {
-    res.json({ message: "API is working!" });
+// 2. Order Cancellation Email Template (❌ Cross Emoji + Product Pics)
+function generateCancellationEmailHTML(order) {
+    const itemsList = generateItemsTableHTML(order.cart_items);
+    return `
+    <div style="background-color: #090d16; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; color: #f8fafc;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: #0f172a; border: 1px solid #ef4444; border-radius: 12px; padding: 24px;">
+            <h2 style="color: #ef4444; margin-top: 0; font-size: 20px; border-bottom: 1px solid #1e293b; padding-bottom: 12px;">❌ ORDER CANCELLED ❌ [${order.orderId}]</h2>
+            
+            <p style="font-size: 14px; color: #cbd5e1; margin: 5px 0;"><b>Customer Name:</b> ${order.customer_name || 'N/A'}</p>
+            <p style="font-size: 14px; color: #cbd5e1; margin: 5px 0;"><b>Phone Number:</b> ${order.customer_phone || 'N/A'}</p>
+            <p style="font-size: 14px; color: #cbd5e1; margin: 5px 0;"><b>User Email:</b> ${order.userEmail || 'N/A'}</p>
+            <p style="font-size: 14px; color: #cbd5e1; margin: 5px 0;"><b>Delivery Address:</b> ${order.customer_address || 'N/A'}</p>
+
+            <h3 style="color: #f8fafc; font-size: 15px; margin-top: 20px;">Cancelled Items:</h3>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                <thead>
+                    <tr style="background-color: #1e293b; color: #94a3b8; font-size: 12px; text-align: left;">
+                        <th style="padding: 8px; text-align: center;">Image</th>
+                        <th style="padding: 8px;">Item</th>
+                        <th style="padding: 8px; text-align: center;">Qty</th>
+                        <th style="padding: 8px; text-align: right;">Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${itemsList}
+                </tbody>
+            </table>
+
+            <h3 style="text-align: right; color: #ef4444; font-size: 18px; margin-top: 15px;">Total Amount: ${order.grand_total || 'N/A'}</h3>
+        </div>
+    </div>
+    `;
+}
+
+// 3. New User Registration Email Template (👤 🎉 Emojis)
+function generateSignupEmailHTML(user) {
+    return `
+    <div style="background-color: #090d16; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; color: #f8fafc;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: #0f172a; border: 1px solid #3b82f6; border-radius: 12px; padding: 24px;">
+            <h2 style="color: #60a5fa; margin-top: 0; font-size: 20px; border-bottom: 1px solid #1e293b; padding-bottom: 12px;">🎉 NEW CUSTOMER REGISTERED 👤</h2>
+            
+            <p style="font-size: 14px; color: #cbd5e1; margin: 5px 0;"><b>Customer Name:</b> ${user.name || 'N/A'}</p>
+            <p style="font-size: 14px; color: #cbd5e1; margin: 5px 0;"><b>Email Address:</b> ${user.email}</p>
+            <p style="font-size: 14px; color: #cbd5e1; margin: 5px 0;"><b>Phone Number:</b> ${user.phone || 'N/A'}</p>
+            <p style="font-size: 14px; color: #cbd5e1; margin: 5px 0;"><b>Registered On:</b> ${new Date().toLocaleString()}</p>
+        </div>
+    </div>
+    `;
+}
+
+// ---------------- API ROUTES ----------------
+
+// Route: New User Registration Notification
+app.post('/api/users/signup', async (req, res) => {
+    const user = req.body;
+    if (!user || !user.email) {
+        return res.status(400).json({ success: false, error: 'Invalid user payload' });
+    }
+
+    const mailOptions = {
+        from: `"MT Store Alerts" <${OWNER_EMAIL}>`,
+        to: OWNER_EMAIL,
+        subject: `🎉 New Customer Registered: ${user.name || user.email}`,
+        html: generateSignupEmailHTML(user)
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        res.status(200).json({ success: true, message: 'Signup email sent successfully' });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
 });
 
+// Route: Place New Order
 app.post('/api/orders/new', async (req, res) => {
     const order = req.body;
-    if (!order || !order.orderId) return res.status(400).json({ error: 'Invalid order data' });
+    if (!order || !order.orderId) {
+        return res.status(400).json({ success: false, error: 'Invalid order payload' });
+    }
+
+    storeOrders[order.orderId] = { ...order, status: 'Placed', paymentDone: false };
+
+    const host = req.get('host');
+    const protocol = req.protocol;
+    const baseUrl = `${protocol}://${host}`;
+
+    const mailOptions = {
+        from: `"MT Store" <${OWNER_EMAIL}>`,
+        to: OWNER_EMAIL,
+        subject: `🛍️ New Order #${order.orderId} - ${order.paymentMethod} 📦`,
+        html: generateOrderEmailHTML(order, baseUrl)
+    };
 
     try {
-        if (db) await db.ref(`orders/${order.orderId}`).set({ ...order, status: 'Placed' });
-
-        const baseUrl = `${req.protocol}://${req.get('host')}`;
-        await transporter.sendMail({
-            from: `"MT Store" <${OWNER_EMAIL}>`,
-            to: OWNER_EMAIL,
-            subject: `🛍️ New Order #${order.orderId}`,
-            html: generateOrderEmailHTML(order, baseUrl)
-        });
-
-        res.status(200).json({ success: true });
+        await transporter.sendMail(mailOptions);
+        res.status(200).json({ success: true, message: 'Order created and email sent' });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ success: false, error: err.message });
     }
 });
 
-app.get('/api/orders/approve/:orderId', async (req, res) => {
+// Route: Cancel Order Notification
+app.post('/api/orders/cancel', async (req, res) => {
+    const { orderId } = req.body;
+    let orderData = storeOrders[orderId] || req.body;
+
+    if (storeOrders[orderId]) {
+        storeOrders[orderId].status = 'Cancelled';
+    }
+
+    const mailOptions = {
+        from: `"MT Store Alerts" <${OWNER_EMAIL}>`,
+        to: OWNER_EMAIL,
+        subject: `❌ Order Cancelled #${orderId}`,
+        html: generateCancellationEmailHTML(orderData)
+    };
+
     try {
-        if (db) await db.ref(`orders/${req.params.orderId}`).update({ status: 'Approved', paymentDone: true });
-        res.send("<h1 style='color:green;text-align:center;'>Order Approved Successfully!</h1>");
+        await transporter.sendMail(mailOptions);
+        res.status(200).json({ success: true, message: 'Cancellation email sent' });
     } catch (err) {
-        res.status(500).send(err.message);
+        res.status(500).json({ success: false, error: err.message });
     }
 });
 
-app.get('/api/orders/reject/:orderId', async (req, res) => {
-    try {
-        if (db) await db.ref(`orders/${req.params.orderId}`).update({ status: 'Rejected' });
-        res.send("<h1 style='color:red;text-align:center;'>Order Rejected!</h1>");
-    } catch (err) {
-        res.status(500).send(err.message);
+// Approve & Reject Routes
+app.get('/api/orders/approve/:orderId', (req, res) => {
+    const { orderId } = req.params;
+    if (storeOrders[orderId]) {
+        storeOrders[orderId].status = 'Approved';
+        storeOrders[orderId].paymentDone = true;
+        res.send(`<h1 style="color: green; font-family: sans-serif; text-align: center; margin-top: 50px;">Order ${orderId} has been APPROVED!</h1>`);
+    } else {
+        res.send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order not found or state reset.</h1>`);
     }
 });
 
-// Fallback Route for Front-end SPA
-app.get('*', (req, res) => {
-    res.sendFile(path.join(publicPath, 'index.html'));
+app.get('/api/orders/reject/:orderId', (req, res) => {
+    const { orderId } = req.params;
+    if (storeOrders[orderId]) {
+        storeOrders[orderId].status = 'Rejected';
+        res.send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order ${orderId} has been REJECTED.</h1>`);
+    } else {
+        res.send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order not found or state reset.</h1>`);
+    }
 });
+
+app.get('/api/orders/status/:orderId', (req, res) => {
+    const { orderId } = req.params;
+    if (storeOrders[orderId]) {
+        res.json({ status: storeOrders[orderId].status, paymentDone: storeOrders[orderId].paymentDone });
+    } else {
+        res.status(404).json({ error: 'Order not found' });
+    }
+});
+
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+    });
+}
 
 module.exports = app;
