@@ -25,7 +25,6 @@ try {
     if (!admin.apps.length) {
         let privateKey = process.env.FIREBASE_PRIVATE_KEY;
         if (privateKey) {
-            // Newlines (\n) aur quotes ko format karne ke liye
             privateKey = privateKey.replace(/^["']|["']$/g, '').replace(/\\n/g, '\n');
         }
 
@@ -323,6 +322,11 @@ app.get('/api/orders/status/:orderId', async (req, res) => {
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
+});
+
+// Catch-all Route for Static index.html Serve
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
 if (process.env.NODE_ENV !== 'production') {
