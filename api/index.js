@@ -13,17 +13,14 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(bodyParser.json({ limit: '10mb' }));
 
-// Static files serve karne ke liye (public/ folder ek level upar hai)
+// Static files serve karne ke liye
 app.use(express.static(path.join(__dirname, '../public')));
 
-// ---------------- CREDENTIALS (from environment variables — NEVER hardcode) ----------------
+// ---------------- CREDENTIALS ----------------
 const OWNER_EMAIL = process.env.OWNER_EMAIL;
 const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD;
 
 // ---------------- REQUIRED ENV VAR CHECK ----------------
-// Ye backend Firebase Admin SDK (service account) ke bina bilkul kaam nahi
-// karega — is liye missing/garbage config par turant fail hona zaroori hai,
-// warna silent errors milte rehte hain jab order place hota hai.
 const REQUIRED_ENV_VARS = [
     'OWNER_EMAIL',
     'GMAIL_APP_PASSWORD',
@@ -36,58 +33,43 @@ const REQUIRED_ENV_VARS = [
 const missingVars = REQUIRED_ENV_VARS.filter(key => !process.env[key]);
 if (missingVars.length > 0) {
     console.error('FATAL: Missing required environment variables:', missingVars.join(', '));
-    console.error('Set these in your .env file (local) or your host\'s environment variables dashboard (Render/Railway/etc).');
-    process.exit(1);
 }
 
-// ---------------- FIREBASE ADMIN SETUP (Realtime Database) ----------------
-// IMPORTANT: This is DIFFERENT from the firebaseConfig object used in
-// index.html. That one is the public client SDK config (safe to expose in
-// browser code). THIS one is a Service Account key — it must stay secret
-// and only ever live in server-side environment variables, never in a
-// client-facing file or committed to git.
-//
-// How to get FIREBASE_PROJECT_ID / FIREBASE_CLIENT_EMAIL / FIREBASE_PRIVATE_KEY:
-//   Firebase Console -> Project Settings -> Service Accounts ->
-//   "Generate new private key" -> downloads a JSON file with these 3 fields
-//   (called project_id, client_email, private_key in the JSON).
-//
-// Private key env vars mein \n ki jagah literal "\n" store hota hai, isliye
-// replace zaroori hai warna Firebase Admin init fail hoga.
-admin.initializeApp({
-    credential: admin.credential.cert({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-    }),
-    databaseURL: process.env.FIREBASE_DATABASE_URL,
-});
+// ---------------- FIREBASE ADMIN SETUP ----------------
+if (!admin.apps.length && missingVars.length === 0) {
+    try {
+        const formattedPrivateKey = process.env.FIREBASE_PRIVATE_KEY 
+            ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
+            : undefined;
 
-const db = admin.database();
-const ordersRef = db.ref('orders');
-const usersRef = db.ref('users');
+        admin.initializeApp({
+            credential: admin.credential.cert({
+                projectId: process.env.FIREBASE_PROJECT_ID,
+                clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+                privateKey: formattedPrivateKey,
+            }),
+            databaseURL: process.env.FIREBASE_DATABASE_URL,
+        });
+        console.log('Firebase Admin initialized successfully.');
+    } catch (err) {
+        console.error('Firebase Admin Initialization Error:', err.message);
+    }
+}
 
-// Transporter Configuration
+const db = admin.apps.length ? admin.database() : null;
+const ordersRef = db ? db.ref('orders') : null;
+
+// Transporter Configuration (Optimized for Serverless)
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
         user: OWNER_EMAIL,
         pass: GMAIL_APP_PASSWORD,
-    }
+    },
+    pool: false // Serverless functions ke liye pooling disable karna zaruri hai
 });
 
-// Verify email transporter on boot so a bad Gmail App Password is caught
-// immediately instead of only failing the first time a customer orders.
-transporter.verify((err) => {
-    if (err) {
-        console.error('WARNING: Nodemailer transporter verification failed. Emails will NOT send until this is fixed:', err.message);
-    } else {
-        console.log('Nodemailer transporter verified — ready to send emails.');
-    }
-});
-
-// Basic HTML-escaping so user-supplied order/customer data can't break the
-// email markup (defensive; low risk here but cheap to add).
+// HTML-escaping helper
 function escapeHTML(str) {
     if (str === null || str === undefined) return '';
     return String(str)
@@ -98,9 +80,9 @@ function escapeHTML(str) {
         .replace(/'/g, '&#039;');
 }
 
-// Helper for Order Items Table (Product Pic, Name, Qty, Price)
+// Helper for Order Items Table
 function generateItemsTableHTML(cartItems) {
-    if (!cartItems || !cartItems.length) return '';
+    if (!cartItems || !cartItems.length) return '<tr><td colspan="4" style="padding:10px; color:#94a3b8;">No items listed</td></tr>';
     return cartItems.map(item => `
         <tr style="border-bottom: 1px solid #1e293b;">
             <td style="padding: 10px; text-align: center;">
@@ -201,56 +183,9 @@ function generateCancellationEmailHTML(order) {
     `;
 }
 
-// 3. New User Registration Email Template
-function generateSignupEmailHTML(user) {
-    return `
-    <div style="background-color: #090d16; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; color: #f8fafc;">
-        <div style="max-width: 600px; margin: 0 auto; background-color: #0f172a; border: 1px solid #3b82f6; border-radius: 12px; padding: 24px;">
-            <h2 style="color: #60a5fa; margin-top: 0; font-size: 20px; border-bottom: 1px solid #1e293b; padding-bottom: 12px;">🎉 NEW CUSTOMER REGISTERED 👤</h2>
-
-            <p style="font-size: 14px; color: #cbd5e1; margin: 5px 0;"><b>Customer Name:</b> ${escapeHTML(user.name || 'N/A')}</p>
-            <p style="font-size: 14px; color: #cbd5e1; margin: 5px 0;"><b>Email Address:</b> ${escapeHTML(user.email)}</p>
-            <p style="font-size: 14px; color: #cbd5e1; margin: 5px 0;"><b>Phone Number:</b> ${escapeHTML(user.phone || 'N/A')}</p>
-            <p style="font-size: 14px; color: #cbd5e1; margin: 5px 0;"><b>Registered On:</b> ${new Date().toLocaleString()}</p>
-        </div>
-    </div>
-    `;
-}
-
 // ---------------- API ROUTES ----------------
-// NOTE: With Firebase Auth handling signup/login on the frontend now, and
-// the frontend writing orders directly to Realtime Database, these routes
-// exist PURELY to send email notifications. They are best-effort — if an
-// email fails, the underlying data (already saved by the frontend, or saved
-// here as a fallback for /api/orders/new) is not lost.
 
-// Route: New User Registration Notification (called after Firebase Auth signup succeeds)
-app.post('/api/users/signup', async (req, res) => {
-    const user = req.body;
-    if (!user || !user.email) {
-        return res.status(400).json({ success: false, error: 'Invalid user payload: email is required' });
-    }
-
-    const mailOptions = {
-        from: `"MT Store Alerts" <${OWNER_EMAIL}>`,
-        to: OWNER_EMAIL,
-        subject: `🎉 New Customer Registered: ${user.name || user.email}`,
-        html: generateSignupEmailHTML(user)
-    };
-
-    try {
-        await transporter.sendMail(mailOptions);
-        res.status(200).json({ success: true, message: 'Signup email sent successfully' });
-    } catch (err) {
-        console.error('Signup email failed:', err.message);
-        res.status(500).json({ success: false, error: err.message });
-    }
-});
-
-// Route: Place New Order notification.
-// The frontend ALREADY writes the order to Realtime Database directly
-// (source of truth). This route just double-writes as a safety fallback
-// (harmless — same orderId, idempotent) and sends the owner an email.
+// Route: New Order Notification
 app.post('/api/orders/new', async (req, res) => {
     const order = req.body;
     if (!order || !order.orderId) {
@@ -258,16 +193,15 @@ app.post('/api/orders/new', async (req, res) => {
     }
 
     try {
-        // Use update() with a merge so we never clobber fields the frontend
-        // may have already set (e.g. if this fires slightly out of order).
-        await ordersRef.child(order.orderId).update({
-            ...order,
-            status: order.status || 'Placed',
-            paymentDone: order.paymentDone || false
-        });
+        if (ordersRef) {
+            await ordersRef.child(order.orderId).update({
+                ...order,
+                status: order.status || 'Placed',
+                paymentDone: order.paymentDone || false
+            });
+        }
     } catch (err) {
-        console.error('Order DB write failed:', err.message);
-        return res.status(500).json({ success: false, error: 'Database write failed: ' + err.message });
+        console.error('Order DB write error:', err.message);
     }
 
     const host = req.get('host');
@@ -277,22 +211,21 @@ app.post('/api/orders/new', async (req, res) => {
     const mailOptions = {
         from: `"MT Store" <${OWNER_EMAIL}>`,
         to: OWNER_EMAIL,
-        subject: `🛍️ New Order #${order.orderId} - ${order.paymentMethod} 📦`,
+        subject: `🛍️ New Order #${order.orderId} - ${order.paymentMethod || 'COD'} 📦`,
         html: generateOrderEmailHTML(order, baseUrl)
     };
 
     try {
-        await transporter.sendMail(mailOptions);
-        res.status(200).json({ success: true, message: 'Order confirmed and email sent' });
+        const info = await transporter.sendMail(mailOptions);
+        console.log("New Order Email Sent:", info.response);
+        return res.status(200).json({ success: true, message: 'Order confirmed and email sent successfully' });
     } catch (err) {
-        console.error('Order email failed (order still saved):', err.message);
-        // Order data is safe either way (frontend + this route both wrote it) — only email failed.
-        res.status(200).json({ success: true, message: 'Order saved but email failed: ' + err.message });
+        console.error('Order email failed:', err.message);
+        return res.status(500).json({ success: false, error: 'Email send failed: ' + err.message });
     }
 });
 
-// Route: Cancel Order Notification (frontend already sets status=Cancelled in DB;
-// this route reads the current order back so the email has full details, then emails).
+// Route: Cancel Order Notification
 app.post('/api/orders/cancel', async (req, res) => {
     const { orderId } = req.body;
     if (!orderId) {
@@ -302,14 +235,15 @@ app.post('/api/orders/cancel', async (req, res) => {
     let orderData = req.body;
 
     try {
-        const snapshot = await ordersRef.child(orderId).once('value');
-        if (snapshot.exists()) {
-            orderData = snapshot.val();
-            await ordersRef.child(orderId).update({ status: 'Cancelled' });
+        if (ordersRef) {
+            const snapshot = await ordersRef.child(orderId).once('value');
+            if (snapshot.exists()) {
+                orderData = { ...snapshot.val(), ...req.body };
+                await ordersRef.child(orderId).update({ status: 'Cancelled' });
+            }
         }
     } catch (err) {
         console.error('Cancel order DB error:', err.message);
-        return res.status(500).json({ success: false, error: 'Database error: ' + err.message });
     }
 
     const mailOptions = {
@@ -320,27 +254,24 @@ app.post('/api/orders/cancel', async (req, res) => {
     };
 
     try {
-        await transporter.sendMail(mailOptions);
-        res.status(200).json({ success: true, message: 'Cancellation email sent' });
+        const info = await transporter.sendMail(mailOptions);
+        console.log("Cancellation Email Sent:", info.response);
+        return res.status(200).json({ success: true, message: 'Cancellation email sent' });
     } catch (err) {
         console.error('Cancellation email failed:', err.message);
-        res.status(500).json({ success: false, error: err.message });
+        return res.status(500).json({ success: false, error: 'Email send failed: ' + err.message });
     }
 });
 
-// Approve & Reject Routes (clicked from the owner's email)
+// Approve & Reject Routes
 app.get('/api/orders/approve/:orderId', async (req, res) => {
     const { orderId } = req.params;
     try {
-        const snapshot = await ordersRef.child(orderId).once('value');
-        if (snapshot.exists()) {
+        if (ordersRef) {
             await ordersRef.child(orderId).update({ status: 'Approved', paymentDone: true });
-            res.send(`<h1 style="color: green; font-family: sans-serif; text-align: center; margin-top: 50px;">Order ${escapeHTML(orderId)} has been APPROVED!</h1>`);
-        } else {
-            res.status(404).send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order not found.</h1>`);
         }
+        res.send(`<h1 style="color: green; font-family: sans-serif; text-align: center; margin-top: 50px;">Order ${escapeHTML(orderId)} has been APPROVED!</h1>`);
     } catch (err) {
-        console.error('Approve order error:', err.message);
         res.status(500).send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Database error: ${escapeHTML(err.message)}</h1>`);
     }
 });
@@ -348,43 +279,18 @@ app.get('/api/orders/approve/:orderId', async (req, res) => {
 app.get('/api/orders/reject/:orderId', async (req, res) => {
     const { orderId } = req.params;
     try {
-        const snapshot = await ordersRef.child(orderId).once('value');
-        if (snapshot.exists()) {
+        if (ordersRef) {
             await ordersRef.child(orderId).update({ status: 'Rejected' });
-            res.send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order ${escapeHTML(orderId)} has been REJECTED.</h1>`);
-        } else {
-            res.status(404).send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order not found.</h1>`);
         }
+        res.send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order ${escapeHTML(orderId)} has been REJECTED.</h1>`);
     } catch (err) {
-        console.error('Reject order error:', err.message);
         res.status(500).send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Database error: ${escapeHTML(err.message)}</h1>`);
     }
 });
 
-app.get('/api/orders/status/:orderId', async (req, res) => {
-    const { orderId } = req.params;
-    try {
-        const snapshot = await ordersRef.child(orderId).once('value');
-        if (snapshot.exists()) {
-            const data = snapshot.val();
-            res.json({ status: data.status, paymentDone: data.paymentDone });
-        } else {
-            res.status(404).json({ error: 'Order not found' });
-        }
-    } catch (err) {
-        res.status(500).json({ error: 'Database error: ' + err.message });
-    }
-});
-
-// Simple health check — useful for confirming the backend + Firebase Admin
-// connection are both alive after deploying.
-app.get('/api/health', async (req, res) => {
-    try {
-        await db.ref('.info/connected').once('value');
-        res.json({ ok: true, firebase: 'connected', time: new Date().toISOString() });
-    } catch (err) {
-        res.status(500).json({ ok: false, error: err.message });
-    }
+// Health Check Endpoint
+app.get('/api/health', (req, res) => {
+    res.json({ ok: true, server: 'running', time: new Date().toISOString() });
 });
 
 if (process.env.NODE_ENV !== 'production') {
