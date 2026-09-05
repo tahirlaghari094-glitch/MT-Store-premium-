@@ -400,6 +400,24 @@
                 </div>
             </div>
 
+            <!-- Change Admin Password -->
+            <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-3">
+                <h4 class="font-bold text-white text-xs uppercase tracking-wider flex items-center gap-2"><i class="fa-solid fa-key text-blue-400"></i> Change Admin Password</h4>
+                <form onsubmit="handleAdminPasswordChange(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Current Password:</label>
+                        <input type="password" id="admin-current-pass" required class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-blue-500 text-white mt-1">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">New Password:</label>
+                        <input type="password" id="admin-new-pass" required minlength="3" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-blue-500 text-white mt-1">
+                    </div>
+                    <div class="flex items-end">
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-extrabold py-2 rounded-lg text-xs transition uppercase tracking-wider">Update Password</button>
+                    </div>
+                </form>
+            </div>
+
             <!-- Delivery Settings -->
             <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-3">
                 <h4 class="font-bold text-white text-xs uppercase tracking-wider flex items-center gap-2"><i class="fa-solid fa-truck text-blue-400"></i> Store Delivery Settings</h4>
@@ -470,8 +488,15 @@
 
                 <div>
                     <label class="text-[10px] text-slate-400 uppercase font-bold tracking-wider block mb-1">Product Images:</label>
-                    <p class="text-[10px] text-amber-400 mb-2 leading-relaxed"><i class="fa-solid fa-triangle-exclamation"></i> File upload is disabled because Realtime Database cannot store large base64 images reliably. Please paste image URLs (e.g. from Unsplash, Imgur, or Firebase Storage) instead.</p>
-                    <input type="text" id="form-urls" placeholder="Image URLs separated by commas (,)..." class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-blue-500 text-white">
+
+                    <div class="flex flex-col sm:flex-row gap-2 mb-2">
+                        <label for="form-image-file-input" class="flex-1 cursor-pointer flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-wider py-2.5 rounded-lg transition">
+                            <i class="fa-solid fa-images"></i> Choose From Gallery
+                        </label>
+                        <input type="file" id="form-image-file-input" accept="image/*" multiple class="hidden" onchange="handleGalleryFileSelect(event)">
+                    </div>
+                    <p id="image-upload-hint" class="text-[10px] text-amber-400 mb-2 leading-relaxed"><i class="fa-solid fa-triangle-exclamation"></i> Images are compressed automatically and stored directly in the database. For best results, choose small/compressed photos (under ~300 KB each). You can still paste image URLs below instead.</p>
+                    <input type="text" id="form-urls" placeholder="Image URLs separated by commas (,) — optional if you used gallery above" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-blue-500 text-white">
 
                     <div id="image-preview-container" class="mt-3 hidden bg-slate-900 p-3 rounded-lg border border-slate-800 space-y-2">
                         <div class="flex justify-between items-center">
@@ -564,6 +589,9 @@
             }
         };
 
+        // Fallback default admin password used only if none is stored yet in Firebase.
+        const DEFAULT_ADMIN_PASSWORD = "123";
+
         let state = {
             clothes: [],           
             categories: [],        
@@ -579,6 +607,7 @@
                 freeDeliveryLimit: 15000,
                 deliveryFee: 300
             },
+            adminPassword: DEFAULT_ADMIN_PASSWORD,
             isAdminLoggedIn: false,
             uploadedImagesArray: [], 
             authMode: 'login',
@@ -712,6 +741,17 @@
                     document.getElementById('setting-free-limit').value = state.settings.freeDeliveryLimit;
                 }
             }, (err) => console.error('settings listener error:', err));
+
+            // Admin password is stored under its own node so it can be changed from the dashboard.
+            rtdb.ref('adminAuth/password').on('value', (snap) => {
+                const val = snap.val();
+                if (val) {
+                    state.adminPassword = val;
+                } else {
+                    state.adminPassword = DEFAULT_ADMIN_PASSWORD;
+                    rtdb.ref('adminAuth/password').set(DEFAULT_ADMIN_PASSWORD).catch(() => {});
+                }
+            }, (err) => console.error('adminAuth listener error:', err));
 
             rtdb.ref('orders').on('value', (snap) => {
                 const val = snap.val();
@@ -1443,14 +1483,41 @@
         function closeAdminModal() { document.getElementById('admin-login-modal').classList.add('hidden'); }
         function verifyAdminPassword(e) {
             e.preventDefault();
-            if (document.getElementById('admin-pass-input').value === "123") {
+            const entered = document.getElementById('admin-pass-input').value;
+            if (entered === state.adminPassword) {
                 state.isAdminLoggedIn = true;
                 localStorage.setItem('mt_admin_auth', 'true');
                 closeAdminModal();
                 openAdminDashboard();
                 showToast("Admin access granted.", "success");
+                document.getElementById('admin-pass-error').classList.add('hidden');
+                document.getElementById('admin-pass-input').value = '';
             } else {
                 document.getElementById('admin-pass-error').classList.remove('hidden');
+            }
+        }
+
+        async function handleAdminPasswordChange(e) {
+            e.preventDefault();
+            const currentEntered = document.getElementById('admin-current-pass').value;
+            const newPass = document.getElementById('admin-new-pass').value.trim();
+
+            if (currentEntered !== state.adminPassword) {
+                showToast("Current password is incorrect!", "error");
+                return;
+            }
+            if (!newPass || newPass.length < 3) {
+                showToast("New password must be at least 3 characters!", "warning");
+                return;
+            }
+
+            try {
+                await rtdb.ref('adminAuth/password').set(newPass);
+                document.getElementById('admin-current-pass').value = '';
+                document.getElementById('admin-new-pass').value = '';
+                showToast("Admin password updated successfully!", "success");
+            } catch (err) {
+                showToast('Failed to update password: ' + err.message, 'error');
             }
         }
 
@@ -1485,6 +1552,85 @@
             }
         }
 
+        // -----------------------------------------------------------------
+        // GALLERY IMAGE PICKER (device file -> compressed base64 data URL)
+        // -----------------------------------------------------------------
+        const MAX_IMAGE_DIMENSION = 900; // px, longest side after resize
+        const IMAGE_JPEG_QUALITY = 0.72;
+
+        function readFileAsDataURL(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = () => reject(new Error('Could not read file: ' + file.name));
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function compressImageDataURL(dataUrl) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => {
+                    let { width, height } = img;
+                    if (width > height && width > MAX_IMAGE_DIMENSION) {
+                        height = Math.round(height * (MAX_IMAGE_DIMENSION / width));
+                        width = MAX_IMAGE_DIMENSION;
+                    } else if (height > MAX_IMAGE_DIMENSION) {
+                        width = Math.round(width * (MAX_IMAGE_DIMENSION / height));
+                        height = MAX_IMAGE_DIMENSION;
+                    }
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    try {
+                        const compressed = canvas.toDataURL('image/jpeg', IMAGE_JPEG_QUALITY);
+                        resolve(compressed);
+                    } catch (err) {
+                        reject(err);
+                    }
+                };
+                img.onerror = () => reject(new Error('Could not load image for compression.'));
+                img.src = dataUrl;
+            });
+        }
+
+        async function handleGalleryFileSelect(event) {
+            const files = Array.from(event.target.files || []);
+            if (files.length === 0) return;
+
+            showToast(`Processing ${files.length} image(s)...`, "info");
+
+            for (const file of files) {
+                if (!file.type.startsWith('image/')) {
+                    showToast(`Skipped "${file.name}" — not an image file.`, "warning");
+                    continue;
+                }
+                try {
+                    const rawDataUrl = await readFileAsDataURL(file);
+                    const compressedDataUrl = await compressImageDataURL(rawDataUrl);
+
+                    // Firebase Realtime Database has size limits per node; warn on very large images.
+                    const approxKB = Math.round((compressedDataUrl.length * 0.75) / 1024);
+                    if (approxKB > 700) {
+                        showToast(`"${file.name}" is still large (~${approxKB}KB) after compression — consider a smaller photo.`, "warning");
+                    }
+
+                    state.uploadedImagesArray.push(compressedDataUrl);
+                } catch (err) {
+                    showToast(`Failed to process "${file.name}": ${err.message}`, "error");
+                }
+            }
+
+            syncUrlsInputFromPreview();
+            renderUploadedPreviews();
+            event.target.value = ''; // allow re-selecting the same file again later
+            showToast("Images added to preview. Don't forget to Publish/Update.", "success");
+        }
+
         function renderUploadedPreviews() {
             const container = document.getElementById('image-preview-container');
             const grid = document.getElementById('preview-thumbs-grid');
@@ -1517,7 +1663,16 @@
         }
 
         function syncUrlsInputFromPreview() {
-            document.getElementById('form-urls').value = state.uploadedImagesArray.join(', ');
+            // Data URLs contain commas, so we cannot safely join them with ",".
+            // Keep the visible text field as a human hint only when all entries are plain http(s) URLs;
+            // otherwise show a short status message instead of the raw base64 blobs.
+            const allPlainUrls = state.uploadedImagesArray.every(u => /^https?:\/\//i.test(u));
+            if (allPlainUrls) {
+                document.getElementById('form-urls').value = state.uploadedImagesArray.join(', ');
+            } else {
+                document.getElementById('form-urls').value = '';
+                document.getElementById('form-urls').placeholder = `${state.uploadedImagesArray.length} image(s) selected from gallery (see preview below)`;
+            }
         }
 
         async function handleFormSubmit(e) {
@@ -1532,9 +1687,14 @@
 
             const isAvailable = statusVal === 'Available';
 
-            let finalImagesList = urlInput
-                ? urlInput.split(',').map(u => u.trim()).filter(u => u.length > 0)
-                : [];
+            // Priority: gallery-picked images (state.uploadedImagesArray) take precedence.
+            // If admin typed plain URLs instead (and didn't pick gallery images), use those.
+            let finalImagesList = [];
+            if (state.uploadedImagesArray.length > 0) {
+                finalImagesList = [...state.uploadedImagesArray];
+            } else if (urlInput) {
+                finalImagesList = urlInput.split(',').map(u => u.trim()).filter(u => u.length > 0);
+            }
 
             if (finalImagesList.length === 0) {
                 finalImagesList.push('https://images.unsplash.com/photo-1516762689617-e1cffffd478d?auto=format&fit=crop&w=600&q=80');
@@ -1585,7 +1745,7 @@
 
             const allImgs = item.images && item.images.length > 0 ? item.images : (item.image ? [item.image] : []);
             state.uploadedImagesArray = allImgs;
-            document.getElementById('form-urls').value = allImgs.join(', ');
+            syncUrlsInputFromPreview();
             renderUploadedPreviews();
 
             document.getElementById('form-desc').value = item.description || '';
@@ -1611,6 +1771,7 @@
         function resetForm() {
             document.getElementById('cloth-form').reset();
             clearSelectedImages();
+            document.getElementById('form-urls').placeholder = 'Image URLs separated by commas (,) — optional if you used gallery above';
             document.getElementById('edit-cloth-id').value = '';
             document.getElementById('form-title').innerHTML = `<i class="fa-solid fa-plus text-blue-400"></i> Add New Clothes Item`;
             document.getElementById('form-submit-btn').innerText = "Publish Item";
@@ -1759,6 +1920,8 @@
             if (urlsInput) {
                 urlsInput.addEventListener('input', () => {
                     const urls = urlsInput.value.split(',').map(u => u.trim()).filter(u => u.length > 0);
+                    // Manual typing in this field only makes sense for plain URLs;
+                    // clear any gallery-picked base64 images to avoid mixing sources unexpectedly.
                     state.uploadedImagesArray = urls;
                     renderUploadedPreviews();
                 });
