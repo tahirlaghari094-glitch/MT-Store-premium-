@@ -1,8 +1,10 @@
+require('dotenv').config();
 const express = require('express');
 const nodemailer = require('nodemailer');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
+const admin = require('firebase-admin');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -14,12 +16,33 @@ app.use(bodyParser.json({ limit: '50mb' }));
 // Static files serve karne ke liye
 app.use(express.static(path.join(__dirname, '../public')));
 
-// Credentials
-const OWNER_EMAIL = 'lagharitahir08@gmail.com';
-const GMAIL_APP_PASSWORD = 'aiosjqbewpfpoyxu'; // Pass direct string
+// ---------------- CREDENTIALS (from environment variables — NEVER hardcode) ----------------
+const OWNER_EMAIL = process.env.OWNER_EMAIL;
+const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD;
 
-// In-Memory Orders Store
-let storeOrders = {};
+// ---------------- FIREBASE ADMIN SETUP (Realtime Database) ----------------
+// Private key env vars mein \n ki jagah literal "\n" store hota hai, isliye replace zaroori hai
+admin.initializeApp({
+    credential: admin.credential.cert({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY
+            ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
+            : undefined,
+    }),
+    databaseURL: process.env.FIREBASE_DATABASE_URL,
+});
+
+const db = admin.database();
+const ordersRef = db.ref('orders');
+
+// Basic startup check so missing env vars fail loudly instead of silently
+if (!OWNER_EMAIL || !GMAIL_APP_PASSWORD) {
+    console.warn('WARNING: OWNER_EMAIL or GMAIL_APP_PASSWORD not set in environment variables.');
+}
+if (!process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_CLIENT_EMAIL || !process.env.FIREBASE_PRIVATE_KEY || !process.env.FIREBASE_DATABASE_URL) {
+    console.warn('WARNING: One or more Firebase environment variables are missing.');
+}
 
 // Transporter Configuration
 const transporter = nodemailer.createTransport({
@@ -45,7 +68,7 @@ function generateItemsTableHTML(cartItems) {
     `).join('');
 }
 
-// 1. New Order Email Template (🛍️ 📦 Emojis + Approve/Reject Buttons)
+// 1. New Order Email Template
 function generateOrderEmailHTML(order, baseUrl) {
     const itemsList = generateItemsTableHTML(order.cart_items);
     const easypaisaDetails = order.paymentMethod === 'Easypaisa' ? `
@@ -90,7 +113,6 @@ function generateOrderEmailHTML(order, baseUrl) {
 
             <h3 style="text-align: right; color: #38bdf8; font-size: 18px; margin-top: 15px;">Total: ${order.grand_total}</h3>
 
-            <!-- Action Buttons -->
             <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #1e293b; text-align: center;">
                 <a href="${approveUrl}" target="_blank" style="background-color: #16a34a; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px; display: inline-block; margin-right: 10px;">APPROVE ORDER</a>
                 <a href="${rejectUrl}" target="_blank" style="background-color: #dc2626; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px; display: inline-block;">REJECT ORDER</a>
@@ -100,7 +122,7 @@ function generateOrderEmailHTML(order, baseUrl) {
     `;
 }
 
-// 2. Order Cancellation Email Template (❌ Cross Emoji + Product Pics)
+// 2. Order Cancellation Email Template
 function generateCancellationEmailHTML(order) {
     const itemsList = generateItemsTableHTML(order.cart_items);
     return `
@@ -134,7 +156,7 @@ function generateCancellationEmailHTML(order) {
     `;
 }
 
-// 3. New User Registration Email Template (👤 🎉 Emojis)
+// 3. New User Registration Email Template
 function generateSignupEmailHTML(user) {
     return `
     <div style="background-color: #090d16; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; color: #f8fafc;">
@@ -174,14 +196,20 @@ app.post('/api/users/signup', async (req, res) => {
     }
 });
 
-// Route: Place New Order
+// Route: Place New Order (ab Firebase Realtime Database mein save hota hai)
 app.post('/api/orders/new', async (req, res) => {
     const order = req.body;
     if (!order || !order.orderId) {
         return res.status(400).json({ success: false, error: 'Invalid order payload' });
     }
 
-    storeOrders[order.orderId] = { ...order, status: 'Placed', paymentDone: false };
+    const orderData = { ...order, status: 'Placed', paymentDone: false };
+
+    try {
+        await ordersRef.child(order.orderId).set(orderData);
+    } catch (err) {
+        return res.status(500).json({ success: false, error: 'Database write failed: ' + err.message });
+    }
 
     const host = req.get('host');
     const protocol = req.protocol;
@@ -198,17 +226,24 @@ app.post('/api/orders/new', async (req, res) => {
         await transporter.sendMail(mailOptions);
         res.status(200).json({ success: true, message: 'Order created and email sent' });
     } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
+        // Order Firebase mein save ho chuka hai, sirf email fail hui
+        res.status(200).json({ success: true, message: 'Order saved but email failed: ' + err.message });
     }
 });
 
 // Route: Cancel Order Notification
 app.post('/api/orders/cancel', async (req, res) => {
     const { orderId } = req.body;
-    let orderData = storeOrders[orderId] || req.body;
+    let orderData = req.body;
 
-    if (storeOrders[orderId]) {
-        storeOrders[orderId].status = 'Cancelled';
+    try {
+        const snapshot = await ordersRef.child(orderId).once('value');
+        if (snapshot.exists()) {
+            orderData = snapshot.val();
+            await ordersRef.child(orderId).update({ status: 'Cancelled' });
+        }
+    } catch (err) {
+        return res.status(500).json({ success: false, error: 'Database error: ' + err.message });
     }
 
     const mailOptions = {
@@ -227,33 +262,48 @@ app.post('/api/orders/cancel', async (req, res) => {
 });
 
 // Approve & Reject Routes
-app.get('/api/orders/approve/:orderId', (req, res) => {
+app.get('/api/orders/approve/:orderId', async (req, res) => {
     const { orderId } = req.params;
-    if (storeOrders[orderId]) {
-        storeOrders[orderId].status = 'Approved';
-        storeOrders[orderId].paymentDone = true;
-        res.send(`<h1 style="color: green; font-family: sans-serif; text-align: center; margin-top: 50px;">Order ${orderId} has been APPROVED!</h1>`);
-    } else {
-        res.send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order not found or state reset.</h1>`);
+    try {
+        const snapshot = await ordersRef.child(orderId).once('value');
+        if (snapshot.exists()) {
+            await ordersRef.child(orderId).update({ status: 'Approved', paymentDone: true });
+            res.send(`<h1 style="color: green; font-family: sans-serif; text-align: center; margin-top: 50px;">Order ${orderId} has been APPROVED!</h1>`);
+        } else {
+            res.send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order not found.</h1>`);
+        }
+    } catch (err) {
+        res.status(500).send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Database error: ${err.message}</h1>`);
     }
 });
 
-app.get('/api/orders/reject/:orderId', (req, res) => {
+app.get('/api/orders/reject/:orderId', async (req, res) => {
     const { orderId } = req.params;
-    if (storeOrders[orderId]) {
-        storeOrders[orderId].status = 'Rejected';
-        res.send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order ${orderId} has been REJECTED.</h1>`);
-    } else {
-        res.send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order not found or state reset.</h1>`);
+    try {
+        const snapshot = await ordersRef.child(orderId).once('value');
+        if (snapshot.exists()) {
+            await ordersRef.child(orderId).update({ status: 'Rejected' });
+            res.send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order ${orderId} has been REJECTED.</h1>`);
+        } else {
+            res.send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order not found.</h1>`);
+        }
+    } catch (err) {
+        res.status(500).send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Database error: ${err.message}</h1>`);
     }
 });
 
-app.get('/api/orders/status/:orderId', (req, res) => {
+app.get('/api/orders/status/:orderId', async (req, res) => {
     const { orderId } = req.params;
-    if (storeOrders[orderId]) {
-        res.json({ status: storeOrders[orderId].status, paymentDone: storeOrders[orderId].paymentDone });
-    } else {
-        res.status(404).json({ error: 'Order not found' });
+    try {
+        const snapshot = await ordersRef.child(orderId).once('value');
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            res.json({ status: data.status, paymentDone: data.paymentDone });
+        } else {
+            res.status(404).json({ error: 'Order not found' });
+        }
+    } catch (err) {
+        res.status(500).json({ error: 'Database error: ' + err.message });
     }
 });
 
