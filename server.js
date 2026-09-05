@@ -12,15 +12,15 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(bodyParser.json({ limit: '50mb' }));
 
-// Absolute Static Path for Vercel Serverless
-const publicDirectoryPath = path.join(process.cwd(), 'public');
-app.use(express.static(publicDirectoryPath));
+// Static Path Configuration
+const publicPath = path.join(process.cwd(), 'public');
+app.use(express.static(publicPath));
 
 // Credentials
 const OWNER_EMAIL = process.env.OWNER_EMAIL || 'lagharitahir08@gmail.com';
 const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD || 'aiosjqbewpfpoyxu';
 
-// Firebase Admin Safe Initialization
+// Firebase Admin Initialization
 let db = null;
 try {
     if (!admin.apps.length) {
@@ -39,15 +39,12 @@ try {
                 databaseURL: "https://mt-store-24open-21915-default-rtdb.firebaseio.com"
             });
             db = admin.database();
-            console.log("Firebase Admin initialized successfully.");
-        } else {
-            console.warn("Firebase credentials missing in Environment Variables!");
         }
     } else {
         db = admin.database();
     }
 } catch (error) {
-    console.error("Firebase Admin Initialization Error:", error.message);
+    console.error("Firebase Initialization Error:", error.message);
 }
 
 // Transporter Configuration
@@ -74,7 +71,7 @@ function generateItemsTableHTML(cartItems) {
     `).join('');
 }
 
-// 1. New Order Email Template
+// Email HTML Generators
 function generateOrderEmailHTML(order, baseUrl) {
     const itemsList = generateItemsTableHTML(order.cart_items);
     const easypaisaDetails = order.paymentMethod === 'Easypaisa' ? `
@@ -90,250 +87,87 @@ function generateOrderEmailHTML(order, baseUrl) {
     const rejectUrl = `${baseUrl}/api/orders/reject/${order.orderId}`;
 
     return `
-    <div style="background-color: #090d16; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; color: #f8fafc;">
+    <div style="background-color: #090d16; font-family: sans-serif; padding: 20px; color: #f8fafc;">
         <div style="max-width: 600px; margin: 0 auto; background-color: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 24px;">
-            <h2 style="color: #38bdf8; margin-top: 0; font-size: 20px; border-bottom: 1px solid #1e293b; padding-bottom: 12px;">🛍️ NEW ORDER RECEIVED 📦 [${order.orderId}]</h2>
-            
-            <p style="font-size: 14px; color: #cbd5e1; margin: 5px 0;"><b>Customer Name:</b> ${order.customer_name}</p>
-            <p style="font-size: 14px; color: #cbd5e1; margin: 5px 0;"><b>Phone Number:</b> ${order.customer_phone}</p>
-            <p style="font-size: 14px; color: #cbd5e1; margin: 5px 0;"><b>User Email:</b> ${order.userEmail}</p>
-            <p style="font-size: 14px; color: #cbd5e1; margin: 5px 0;"><b>Delivery Address:</b> ${order.customer_address}</p>
-            <p style="font-size: 14px; color: #cbd5e1; margin: 5px 0;"><b>Payment Method:</b> <span style="color: #facc15; font-weight: bold;">${order.paymentMethod}</span></p>
+            <h2 style="color: #38bdf8; margin-top: 0; font-size: 20px;">🛍️ NEW ORDER RECEIVED [${order.orderId}]</h2>
+            <p style="font-size: 14px; color: #cbd5e1;"><b>Customer Name:</b> ${order.customer_name}</p>
+            <p style="font-size: 14px; color: #cbd5e1;"><b>Phone:</b> ${order.customer_phone}</p>
+            <p style="font-size: 14px; color: #cbd5e1;"><b>Email:</b> ${order.userEmail}</p>
+            <p style="font-size: 14px; color: #cbd5e1;"><b>Address:</b> ${order.customer_address}</p>
+            <p style="font-size: 14px; color: #cbd5e1;"><b>Payment Method:</b> <span style="color: #facc15;">${order.paymentMethod}</span></p>
 
             ${easypaisaDetails}
 
-            <h3 style="color: #f8fafc; font-size: 15px; margin-top: 20px;">Order Items:</h3>
-            <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+            <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
                 <thead>
-                    <tr style="background-color: #1e293b; color: #94a3b8; font-size: 12px; text-align: left;">
-                        <th style="padding: 8px; text-align: center;">Image</th>
+                    <tr style="background-color: #1e293b; color: #94a3b8; font-size: 12px;">
+                        <th style="padding: 8px;">Image</th>
                         <th style="padding: 8px;">Item</th>
-                        <th style="padding: 8px; text-align: center;">Qty</th>
+                        <th style="padding: 8px;">Qty</th>
                         <th style="padding: 8px; text-align: right;">Price</th>
                     </tr>
                 </thead>
-                <tbody>
-                    ${itemsList}
-                </tbody>
+                <tbody>${itemsList}</tbody>
             </table>
 
-            <h3 style="text-align: right; color: #38bdf8; font-size: 18px; margin-top: 15px;">Total: ${order.grand_total}</h3>
+            <h3 style="text-align: right; color: #38bdf8; margin-top: 15px;">Total: ${order.grand_total}</h3>
 
-            <!-- Action Buttons -->
-            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #1e293b; text-align: center;">
-                <a href="${approveUrl}" target="_blank" style="background-color: #16a34a; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px; display: inline-block; margin-right: 10px;">APPROVE ORDER</a>
-                <a href="${rejectUrl}" target="_blank" style="background-color: #dc2626; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px; display: inline-block;">REJECT ORDER</a>
+            <div style="margin-top: 25px; text-align: center;">
+                <a href="${approveUrl}" style="background-color: #16a34a; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold; margin-right: 10px;">APPROVE ORDER</a>
+                <a href="${rejectUrl}" style="background-color: #dc2626; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold;">REJECT ORDER</a>
             </div>
         </div>
     </div>
     `;
 }
 
-// 2. Order Cancellation Email Template
-function generateCancellationEmailHTML(order) {
-    const itemsList = generateItemsTableHTML(order.cart_items);
-    return `
-    <div style="background-color: #090d16; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; color: #f8fafc;">
-        <div style="max-width: 600px; margin: 0 auto; background-color: #0f172a; border: 1px solid #ef4444; border-radius: 12px; padding: 24px;">
-            <h2 style="color: #ef4444; margin-top: 0; font-size: 20px; border-bottom: 1px solid #1e293b; padding-bottom: 12px;">❌ ORDER CANCELLED ❌ [${order.orderId}]</h2>
-            
-            <p style="font-size: 14px; color: #cbd5e1; margin: 5px 0;"><b>Customer Name:</b> ${order.customer_name || 'N/A'}</p>
-            <p style="font-size: 14px; color: #cbd5e1; margin: 5px 0;"><b>Phone Number:</b> ${order.customer_phone || 'N/A'}</p>
-            <p style="font-size: 14px; color: #cbd5e1; margin: 5px 0;"><b>User Email:</b> ${order.userEmail || 'N/A'}</p>
-            <p style="font-size: 14px; color: #cbd5e1; margin: 5px 0;"><b>Delivery Address:</b> ${order.customer_address || 'N/A'}</p>
-
-            <h3 style="color: #f8fafc; font-size: 15px; margin-top: 20px;">Cancelled Items:</h3>
-            <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
-                <thead>
-                    <tr style="background-color: #1e293b; color: #94a3b8; font-size: 12px; text-align: left;">
-                        <th style="padding: 8px; text-align: center;">Image</th>
-                        <th style="padding: 8px;">Item</th>
-                        <th style="padding: 8px; text-align: center;">Qty</th>
-                        <th style="padding: 8px; text-align: right;">Price</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${itemsList}
-                </tbody>
-            </table>
-
-            <h3 style="text-align: right; color: #ef4444; font-size: 18px; margin-top: 15px;">Total Amount: ${order.grand_total || 'N/A'}</h3>
-        </div>
-    </div>
-    `;
-}
-
-// 3. New User Registration Email Template
-function generateSignupEmailHTML(user) {
-    return `
-    <div style="background-color: #090d16; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; color: #f8fafc;">
-        <div style="max-width: 600px; margin: 0 auto; background-color: #0f172a; border: 1px solid #3b82f6; border-radius: 12px; padding: 24px;">
-            <h2 style="color: #60a5fa; margin-top: 0; font-size: 20px; border-bottom: 1px solid #1e293b; padding-bottom: 12px;">🎉 NEW CUSTOMER REGISTERED 👤</h2>
-            
-            <p style="font-size: 14px; color: #cbd5e1; margin: 5px 0;"><b>Customer Name:</b> ${user.name || 'N/A'}</p>
-            <p style="font-size: 14px; color: #cbd5e1; margin: 5px 0;"><b>Email Address:</b> ${user.email}</p>
-            <p style="font-size: 14px; color: #cbd5e1; margin: 5px 0;"><b>Phone Number:</b> ${user.phone || 'N/A'}</p>
-            <p style="font-size: 14px; color: #cbd5e1; margin: 5px 0;"><b>Registered On:</b> ${new Date().toLocaleString()}</p>
-        </div>
-    </div>
-    `;
-}
-
-// ---------------- API ROUTES ----------------
-
-// Root Route Test
+// API Routes
 app.get('/api', (req, res) => {
-    res.json({ message: "MT Store API is running smoothly!" });
+    res.json({ message: "API is working!" });
 });
 
-// Route: New User Registration Notification
-app.post('/api/users/signup', async (req, res) => {
-    const user = req.body;
-    if (!user || !user.email) {
-        return res.status(400).json({ success: false, error: 'Invalid user payload' });
-    }
-
-    const mailOptions = {
-        from: `"MT Store Alerts" <${OWNER_EMAIL}>`,
-        to: OWNER_EMAIL,
-        subject: `🎉 New Customer Registered: ${user.name || user.email}`,
-        html: generateSignupEmailHTML(user)
-    };
-
-    try {
-        await transporter.sendMail(mailOptions);
-        res.status(200).json({ success: true, message: 'Signup email sent successfully' });
-    } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
-    }
-});
-
-// Route: Place New Order
 app.post('/api/orders/new', async (req, res) => {
     const order = req.body;
-    if (!order || !order.orderId) {
-        return res.status(400).json({ success: false, error: 'Invalid order payload' });
-    }
-
-    const orderData = { ...order, status: 'Placed', paymentDone: false };
+    if (!order || !order.orderId) return res.status(400).json({ error: 'Invalid order data' });
 
     try {
-        if (db) {
-            await db.ref(`orders/${order.orderId}`).set(orderData);
-        }
+        if (db) await db.ref(`orders/${order.orderId}`).set({ ...order, status: 'Placed' });
 
-        const host = req.get('host');
-        const protocol = req.protocol;
-        const baseUrl = `${protocol}://${host}`;
-
-        const mailOptions = {
+        const baseUrl = `${req.protocol}://${req.get('host')}`;
+        await transporter.sendMail({
             from: `"MT Store" <${OWNER_EMAIL}>`,
             to: OWNER_EMAIL,
-            subject: `🛍️ New Order #${order.orderId} - ${order.paymentMethod} 📦`,
+            subject: `🛍️ New Order #${order.orderId}`,
             html: generateOrderEmailHTML(order, baseUrl)
-        };
+        });
 
-        await transporter.sendMail(mailOptions);
-        res.status(200).json({ success: true, message: 'Order created and email sent' });
-    } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
-    }
-});
-
-// Route: Cancel Order Notification
-app.post('/api/orders/cancel', async (req, res) => {
-    const { orderId } = req.body;
-    
-    try {
-        let orderData = req.body;
-        if (db) {
-            const snapshot = await db.ref(`orders/${orderId}`).once('value');
-            orderData = snapshot.val() || req.body;
-            await db.ref(`orders/${orderId}/status`).set('Cancelled');
-        }
-
-        const mailOptions = {
-            from: `"MT Store Alerts" <${OWNER_EMAIL}>`,
-            to: OWNER_EMAIL,
-            subject: `❌ Order Cancelled #${orderId}`,
-            html: generateCancellationEmailHTML(orderData)
-        };
-
-        await transporter.sendMail(mailOptions);
-        res.status(200).json({ success: true, message: 'Cancellation email sent' });
-    } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
-    }
-});
-
-// Approve Route
-app.get('/api/orders/approve/:orderId', async (req, res) => {
-    const { orderId } = req.params;
-    try {
-        if (!db) {
-            return res.status(500).send("Database not configured.");
-        }
-        const ref = db.ref(`orders/${orderId}`);
-        const snapshot = await ref.once('value');
-        if (snapshot.exists()) {
-            await ref.update({ status: 'Approved', paymentDone: true });
-            res.send(`<h1 style="color: green; font-family: sans-serif; text-align: center; margin-top: 50px;">Order ${orderId} has been APPROVED!</h1>`);
-        } else {
-            res.send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order not found.</h1>`);
-        }
-    } catch (err) {
-        res.status(500).send(`Error: ${err.message}`);
-    }
-});
-
-// Reject Route
-app.get('/api/orders/reject/:orderId', async (req, res) => {
-    const { orderId } = req.params;
-    try {
-        if (!db) {
-            return res.status(500).send("Database not configured.");
-        }
-        const ref = db.ref(`orders/${orderId}`);
-        const snapshot = await ref.once('value');
-        if (snapshot.exists()) {
-            await ref.update({ status: 'Rejected' });
-            res.send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order ${orderId} has been REJECTED.</h1>`);
-        } else {
-            res.send(`<h1 style="color: red; font-family: sans-serif; text-align: center; margin-top: 50px;">Order not found.</h1>`);
-        }
-    } catch (err) {
-        res.status(500).send(`Error: ${err.message}`);
-    }
-});
-
-// Route: Get Order Status
-app.get('/api/orders/status/:orderId', async (req, res) => {
-    const { orderId } = req.params;
-    try {
-        if (!db) {
-            return res.status(500).json({ error: "Database not configured." });
-        }
-        const snapshot = await db.ref(`orders/${orderId}`).once('value');
-        if (snapshot.exists()) {
-            const data = snapshot.val();
-            res.json({ status: data.status, paymentDone: data.paymentDone });
-        } else {
-            res.status(404).json({ error: 'Order not found' });
-        }
+        res.status(200).json({ success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-// Catch-all Route for Static index.html Serve
-app.get('*', (req, res) => {
-    res.sendFile(path.join(publicDirectoryPath, 'index.html'));
+app.get('/api/orders/approve/:orderId', async (req, res) => {
+    try {
+        if (db) await db.ref(`orders/${req.params.orderId}`).update({ status: 'Approved', paymentDone: true });
+        res.send("<h1 style='color:green;text-align:center;'>Order Approved Successfully!</h1>");
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
 });
 
-if (process.env.NODE_ENV !== 'production') {
-    app.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}`);
-    });
-}
+app.get('/api/orders/reject/:orderId', async (req, res) => {
+    try {
+        if (db) await db.ref(`orders/${req.params.orderId}`).update({ status: 'Rejected' });
+        res.send("<h1 style='color:red;text-align:center;'>Order Rejected!</h1>");
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+});
+
+// Fallback Route for Front-end SPA
+app.get('*', (req, res) => {
+    res.sendFile(path.join(publicPath, 'index.html'));
+});
 
 module.exports = app;
