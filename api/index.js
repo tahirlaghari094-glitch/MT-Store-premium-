@@ -58,15 +58,16 @@ if (!admin.apps.length && missingVars.length === 0) {
 
 const db = admin.apps.length ? admin.database() : null;
 const ordersRef = db ? db.ref('orders') : null;
+const adminConfigRef = db ? db.ref('adminConfig') : null;
 
-// Transporter Configuration (Optimized for Serverless)
+// Transporter Configuration
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
         user: OWNER_EMAIL,
         pass: GMAIL_APP_PASSWORD,
     },
-    pool: false // Serverless functions ke liye pooling disable karna zaruri hai
+    pool: false
 });
 
 // HTML-escaping helper
@@ -184,6 +185,49 @@ function generateCancellationEmailHTML(order) {
 }
 
 // ---------------- API ROUTES ----------------
+
+// Route: Admin Password Verification
+app.post('/api/admin/verify-pass', async (req, res) => {
+    const { password } = req.body;
+    try {
+        let actualPass = "admin123"; // Default fallback
+        if (adminConfigRef) {
+            const snapshot = await adminConfigRef.child('password').once('value');
+            if (snapshot.exists()) actualPass = snapshot.val();
+        }
+        if (password === actualPass) {
+            return res.json({ success: true, message: 'Password Verified' });
+        } else {
+            return res.status(401).json({ success: false, error: 'Incorrect Admin Password' });
+        }
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// Route: Admin Password Change
+app.post('/api/admin/change-pass', async (req, res) => {
+    const { currentPass, newPass } = req.body;
+    if (!currentPass || !newPass) {
+        return res.status(400).json({ success: false, error: 'Both password fields are required' });
+    }
+    try {
+        let actualPass = "admin123";
+        if (adminConfigRef) {
+            const snapshot = await adminConfigRef.child('password').once('value');
+            if (snapshot.exists()) actualPass = snapshot.val();
+        }
+        if (currentPass !== actualPass) {
+            return res.status(401).json({ success: false, error: 'Current password does not match' });
+        }
+        if (adminConfigRef) {
+            await adminConfigRef.child('password').set(newPass);
+        }
+        res.json({ success: true, message: 'Password updated successfully' });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
 
 // Route: New Order Notification
 app.post('/api/orders/new', async (req, res) => {
