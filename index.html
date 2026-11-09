@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MT Store | Premium Apparel</title>
+    <title>A.K Textiles | Premium Apparel & Fabrics</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,11 +22,11 @@
                 extend: {
                     colors: {
                         brand: {
-                            50: '#f0f7ff',
-                            100: '#e0effe',
-                            500: '#3b82f6',
-                            600: '#2563eb',
-                            700: '#1d4ed8',
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
                         }
                     },
                     fontFamily: {
@@ -38,14 +38,14 @@
     </script>
     <style>
         .glass-panel {
-            background: rgba(11, 17, 32, 0.85);
+            background: rgba(9, 15, 26, 0.9);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
         }
         ::-webkit-scrollbar { width: 5px; height: 5px; }
-        ::-webkit-scrollbar-track { background: #0b1120; }
+        ::-webkit-scrollbar-track { background: #090f1a; }
         ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 9999px; }
-        ::-webkit-scrollbar-thumb:hover { background: #3b82f6; }
+        ::-webkit-scrollbar-thumb:hover { background: #10b981; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
@@ -56,8 +56,8 @@
         .animate-toast { animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
         .spinner {
-            border: 3px solid rgba(59,130,246,0.2);
-            border-top-color: #3b82f6;
+            border: 3px solid rgba(16,185,129,0.2);
+            border-top-color: #10b981;
             border-radius: 50%;
             width: 28px;
             height: 28px;
@@ -66,19 +66,19 @@
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white relative">
+<body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen flex flex-col justify-between selection:bg-emerald-600 selection:text-white relative">
 
     <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
 
     <!-- GLOBAL LOADING OVERLAY -->
     <div id="global-loading-overlay" class="fixed inset-0 bg-slate-950 z-[60] flex flex-col items-center justify-center gap-4">
         <div class="spinner"></div>
-        <p class="text-xs text-slate-400 uppercase tracking-widest font-bold">Connecting to store...</p>
+        <p class="text-xs text-emerald-400 uppercase tracking-widest font-bold">Connecting to A.K Textiles...</p>
     </div>
 
     <div id="confirm-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl max-w-sm w-full text-center space-y-4 shadow-2xl animate-toast">
-            <div class="w-12 h-12 mx-auto rounded-full bg-blue-600/10 border border-blue-500/30 text-blue-400 flex items-center justify-center text-xl">
+            <div class="w-12 h-12 mx-auto rounded-full bg-emerald-600/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center text-xl">
                 <i class="fa-solid fa-circle-question"></i>
             </div>
             <div>
@@ -87,15 +87,15 @@
             </div>
             <div class="flex gap-2 pt-2">
                 <button id="confirm-cancel-btn" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 rounded-lg text-xs uppercase tracking-wider transition">Cancel</button>
-                <button id="confirm-ok-btn" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-extrabold py-2.5 rounded-lg text-xs uppercase tracking-wider transition shadow-lg shadow-blue-600/30">Confirm</button>
+                <button id="confirm-ok-btn" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-2.5 rounded-lg text-xs uppercase tracking-wider transition shadow-lg shadow-emerald-600/30">Confirm</button>
             </div>
         </div>
     </div>
 
     <!-- Announcement Bar -->
-    <div id="offer-banner" class="bg-slate-900 border-b border-slate-800 text-blue-300 text-[11px] sm:text-xs py-2 px-3 text-center font-medium tracking-wider flex justify-center items-center gap-2">
-        <span class="inline-block w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span>
-        <span id="banner-text" class="truncate sm:whitespace-normal">EXPRESS SHIPPING: Free above Rs. 15,000 | Official MT Store</span>
+    <div id="offer-banner" class="bg-gradient-to-r from-emerald-950 via-slate-900 to-emerald-950 border-b border-emerald-500/20 text-emerald-300 text-[11px] sm:text-xs py-2 px-3 text-center font-medium tracking-wider flex justify-center items-center gap-2">
+        <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0 animate-pulse"></span>
+        <span id="banner-text" class="truncate sm:whitespace-normal">EXPRESS SHIPPING: Free above Rs. 15,000 | Official A.K Textiles</span>
     </div>
 
     <!-- Header Navigation -->
@@ -107,46 +107,46 @@
                 </button>
 
                 <button onclick="switchPage('home')" class="flex items-center gap-3 text-left group">
-                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center font-black text-lg sm:text-xl group-hover:bg-blue-500 transition duration-300 shadow-lg shadow-blue-600/30">MT</div>
+                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-emerald-500 text-white flex items-center justify-center font-black text-lg sm:text-xl group-hover:scale-105 transition duration-300 shadow-lg shadow-emerald-600/30">AK</div>
                     <div>
-                        <span class="text-lg sm:text-xl font-black tracking-widest text-white block uppercase">MT</span>
-                        <span class="block text-[8px] sm:text-[9px] text-blue-400 font-bold uppercase tracking-widest -mt-1">Store</span>
+                        <span class="text-lg sm:text-xl font-black tracking-widest text-white block uppercase">A.K</span>
+                        <span class="block text-[8px] sm:text-[9px] text-emerald-400 font-extrabold uppercase tracking-widest -mt-1">Textiles</span>
                     </div>
                 </button>
             </div>
 
             <nav class="hidden md:flex items-center gap-8 text-xs font-bold uppercase tracking-widest text-slate-400">
-                <button onclick="switchPage('home')" class="hover:text-blue-400 transition-colors">Home</button>
-                <button onclick="switchPage('shop')" class="hover:text-blue-400 transition-colors">Catalog</button>
-                <button onclick="switchPage('orders')" class="hover:text-blue-400 transition-colors flex items-center gap-1.5"><i class="fa-solid fa-box font-normal"></i> My Orders</button>
-                <button onclick="switchPage('about')" class="hover:text-blue-400 transition-colors">Brand Story</button>
-                <button onclick="switchPage('contact')" class="hover:text-blue-400 transition-colors">Contact</button>
+                <button onclick="switchPage('home')" class="hover:text-emerald-400 transition-colors">Home</button>
+                <button onclick="switchPage('shop')" class="hover:text-emerald-400 transition-colors">Catalog</button>
+                <button onclick="switchPage('orders')" class="hover:text-emerald-400 transition-colors flex items-center gap-1.5"><i class="fa-solid fa-box font-normal"></i> My Orders</button>
+                <button onclick="switchPage('about')" class="hover:text-emerald-400 transition-colors">Brand Story</button>
+                <button onclick="switchPage('contact')" class="hover:text-emerald-400 transition-colors">Contact</button>
             </nav>
 
             <div class="flex items-center gap-2">
                 <div id="user-auth-btn-container">
-                    <button onclick="openUserAuthModal('login')" class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:border-blue-500 text-xs font-bold transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-user text-xs text-blue-400"></i> <span>Login / Sign Up</span>
+                    <button onclick="openUserAuthModal('login')" class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:border-emerald-500 text-xs font-bold transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-user text-xs text-emerald-400"></i> <span>Login / Sign Up</span>
                     </button>
                 </div>
 
-                <button onclick="switchPage('cart')" class="relative p-2.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:border-blue-500 transition">
+                <button onclick="switchPage('cart')" class="relative p-2.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:border-emerald-500 transition">
                     <i class="fa-solid fa-bag-shopping text-sm"></i>
-                    <span id="cart-count" class="absolute -top-1.5 -right-1.5 bg-blue-600 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">0</span>
+                    <span id="cart-count" class="absolute -top-1.5 -right-1.5 bg-emerald-600 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">0</span>
                 </button>
 
-                <button onclick="handleAdminBtnClick()" class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 text-xs font-bold transition flex items-center gap-1.5 hover:border-blue-500 hover:text-white">
+                <button onclick="handleAdminBtnClick()" class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 text-xs font-bold transition flex items-center gap-1.5 hover:border-emerald-500 hover:text-white">
                     <i class="fa-solid fa-lock text-[10px]"></i> <span class="hidden sm:inline">Admin</span>
                 </button>
             </div>
         </div>
 
         <div id="mobile-menu" class="hidden md:hidden border-t border-slate-800 bg-slate-950 px-4 py-3 space-y-2 text-xs font-bold uppercase tracking-widest text-slate-400">
-            <button onclick="switchPage('home'); toggleMobileMenu();" class="block w-full text-left py-2 hover:text-blue-400"><i class="fa-solid fa-house mr-2"></i> Home</button>
-            <button onclick="switchPage('shop'); toggleMobileMenu();" class="block w-full text-left py-2 hover:text-blue-400"><i class="fa-solid fa-store mr-2"></i> Catalog</button>
-            <button onclick="switchPage('orders'); toggleMobileMenu();" class="block w-full text-left py-2 hover:text-blue-400"><i class="fa-solid fa-box mr-2"></i> My Orders</button>
-            <button onclick="switchPage('about'); toggleMobileMenu();" class="block w-full text-left py-2 hover:text-blue-400"><i class="fa-solid fa-book-open mr-2"></i> Brand Story</button>
-            <button onclick="switchPage('contact'); toggleMobileMenu();" class="block w-full text-left py-2 hover:text-blue-400"><i class="fa-solid fa-headset mr-2"></i> Contact</button>
+            <button onclick="switchPage('home'); toggleMobileMenu();" class="block w-full text-left py-2 hover:text-emerald-400"><i class="fa-solid fa-house mr-2"></i> Home</button>
+            <button onclick="switchPage('shop'); toggleMobileMenu();" class="block w-full text-left py-2 hover:text-emerald-400"><i class="fa-solid fa-store mr-2"></i> Catalog</button>
+            <button onclick="switchPage('orders'); toggleMobileMenu();" class="block w-full text-left py-2 hover:text-emerald-400"><i class="fa-solid fa-box mr-2"></i> My Orders</button>
+            <button onclick="switchPage('about'); toggleMobileMenu();" class="block w-full text-left py-2 hover:text-emerald-400"><i class="fa-solid fa-book-open mr-2"></i> Brand Story</button>
+            <button onclick="switchPage('contact'); toggleMobileMenu();" class="block w-full text-left py-2 hover:text-emerald-400"><i class="fa-solid fa-headset mr-2"></i> Contact</button>
         </div>
     </header>
 
@@ -154,19 +154,20 @@
 
         <!-- PAGE 1: HOME -->
         <section id="page-home" class="page-view space-y-10 sm:space-y-16">
-            <div class="relative rounded-2xl bg-gradient-to-br from-slate-900 via-slate-950 to-blue-950 border border-slate-800 p-6 sm:p-12 lg:p-16 flex flex-col lg:flex-row items-center justify-between gap-8 sm:gap-12">
+            <div class="relative rounded-3xl bg-gradient-to-br from-slate-900 via-slate-950 to-emerald-950/60 border border-emerald-500/20 p-6 sm:p-12 lg:p-16 flex flex-col lg:flex-row items-center justify-between gap-8 sm:gap-12 overflow-hidden shadow-2xl">
+                <div class="absolute -right-20 -bottom-20 w-96 h-96 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="max-w-xl space-y-4 sm:space-y-6 text-center lg:text-left z-10">
-                    <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-950/80 border border-blue-800/50 text-blue-400 text-[10px] sm:text-[11px] font-bold uppercase tracking-widest">
-                        Official Direct Store
+                    <span class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-800/60 text-emerald-400 text-[10px] sm:text-[11px] font-bold uppercase tracking-widest shadow-inner">
+                        <i class="fa-solid fa-award"></i> Premium Fabric Creator & Direct Store
                     </span>
-                    <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight uppercase leading-none">Elevate Your <br><span class="text-blue-500">Everyday Style.</span></h1>
-                    <p class="text-slate-400 text-xs sm:text-base leading-relaxed">Handpicked premium traditional suits, casual wear, and luxury apparel directly curated by MT Store.</p>
+                    <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight uppercase leading-none">Experience Luxury <br><span class="text-emerald-400">In Every Thread.</span></h1>
+                    <p class="text-slate-300 text-xs sm:text-base leading-relaxed">Discover exquisite traditional shalwar kameez, premium unstitched luxury fabrics, and bespoke eastern wear curated by Ayyan Khaskheli.</p>
                     <div class="flex flex-col sm:flex-row justify-center lg:justify-start gap-3 pt-2">
-                        <button onclick="switchPage('shop')" class="w-full sm:w-auto px-8 py-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs sm:text-sm tracking-wider uppercase transition shadow-lg shadow-blue-600/30">Explore Catalog</button>
+                        <button onclick="switchPage('shop')" class="w-full sm:w-auto px-8 py-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs sm:text-sm tracking-wider uppercase transition shadow-lg shadow-emerald-600/30">Explore Catalog</button>
                     </div>
                 </div>
-                <div class="relative w-full lg:w-1/2 flex justify-center">
-                    <img src="https://images.unsplash.com/photo-1516762689617-e1cffffd478d?auto=format&fit=crop&w=800&q=80" class="relative z-10 w-full max-w-xs sm:max-w-sm object-contain rounded-xl border border-slate-800 hover:border-blue-500 transition duration-300 cursor-pointer" onclick="openProductModal(101)">
+                <div class="relative w-full lg:w-1/2 flex justify-center z-10">
+                    <img src="https://images.unsplash.com/photo-1516762689617-e1cffffd478d?auto=format&fit=crop&w=800&q=80" class="relative z-10 w-full max-w-xs sm:max-w-sm object-contain rounded-2xl border border-emerald-500/30 hover:border-emerald-500 transition duration-300 cursor-pointer shadow-2xl" onclick="openProductModal(101)">
                 </div>
             </div>
 
@@ -174,9 +175,9 @@
                 <div class="flex justify-between items-end border-b border-slate-800 pb-4">
                     <div>
                         <h2 class="text-lg sm:text-xl font-bold text-white uppercase tracking-wider">Featured Collection</h2>
-                        <p class="text-[11px] text-slate-400">Most requested releases in store</p>
+                        <p class="text-[11px] text-slate-400">Handcrafted masterpieces by A.K Textiles</p>
                     </div>
-                    <button onclick="switchPage('shop')" class="text-xs font-bold text-blue-400 hover:text-blue-300 transition">View All <i class="fa-solid fa-arrow-right text-[10px]"></i></button>
+                    <button onclick="switchPage('shop')" class="text-xs font-bold text-emerald-400 hover:text-emerald-300 transition">View All <i class="fa-solid fa-arrow-right text-[10px]"></i></button>
                 </div>
                 <div id="home-featured-grid" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4"></div>
             </div>
@@ -187,7 +188,7 @@
             <div class="flex flex-col md:flex-row gap-3 justify-between items-center bg-slate-900/80 border border-slate-800 p-4 rounded-xl">
                 <div class="relative w-full md:w-80">
                     <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400 text-xs"></i>
-                    <input type="text" id="shop-search" oninput="filterProducts()" placeholder="Search outfit or category..." class="w-full pl-9 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-lg text-xs focus:outline-none focus:border-blue-500 text-slate-200 placeholder-slate-500">
+                    <input type="text" id="shop-search" oninput="filterProducts()" placeholder="Search outfit or fabric category..." class="w-full pl-9 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-lg text-xs focus:outline-none focus:border-emerald-500 text-slate-200 placeholder-slate-500">
                 </div>
                 <div id="category-buttons-container" class="flex items-center gap-2 w-full md:w-auto overflow-x-auto no-scrollbar py-1"></div>
             </div>
@@ -200,9 +201,9 @@
             <div class="flex justify-between items-center border-b border-slate-800 pb-4">
                 <div>
                     <h2 class="text-xl sm:text-2xl font-bold text-white uppercase tracking-wider flex items-center gap-2.5">
-                        <i class="fa-solid fa-box-archive text-blue-500"></i> My Placed Orders
+                        <i class="fa-solid fa-box-archive text-emerald-500"></i> My Placed Orders
                     </h2>
-                    <p class="text-xs text-slate-400">Manage and track your account's recent orders</p>
+                    <p class="text-xs text-slate-400">Manage and track your account's recent orders with A.K Textiles</p>
                 </div>
             </div>
             <div id="orders-history-container" class="space-y-4"></div>
@@ -210,38 +211,38 @@
 
         <!-- PAGE 4: CHECKOUT & CART -->
         <section id="page-cart" class="page-view hidden space-y-6 sm:space-y-8">
-            <h2 class="text-xl sm:text-2xl font-bold text-white uppercase tracking-wider flex items-center gap-2.5"><i class="fa-solid fa-bag-shopping text-blue-500"></i> Shopping Bag & Checkout</h2>
+            <h2 class="text-xl sm:text-2xl font-bold text-white uppercase tracking-wider flex items-center gap-2.5"><i class="fa-solid fa-bag-shopping text-emerald-500"></i> Shopping Bag & Checkout</h2>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
                 <div class="lg:col-span-2 space-y-3" id="cart-items-container"></div>
 
-                <div class="bg-slate-900/80 border border-slate-800 p-6 rounded-xl h-fit space-y-5">
+                <div class="bg-slate-900/80 border border-slate-800 p-6 rounded-xl h-fit space-y-5 shadow-xl">
                     <h3 class="text-sm sm:text-base font-bold text-white uppercase tracking-wider border-b border-slate-800 pb-3">Order Summary</h3>
                     <div class="space-y-2.5 text-xs">
                         <div class="flex justify-between text-slate-400"><span>Subtotal</span><span id="cart-subtotal" class="font-mono text-slate-200">Rs. 0</span></div>
                         <div class="flex justify-between text-slate-400"><span>Delivery Fee</span><span id="cart-delivery" class="text-slate-200 font-semibold">Rs. 0</span></div>
-                        <div class="flex justify-between text-white font-bold text-sm pt-3 border-t border-slate-800 uppercase"><span>Grand Total</span><span id="cart-total" class="text-blue-400 font-mono">Rs. 0</span></div>
+                        <div class="flex justify-between text-white font-bold text-sm pt-3 border-t border-slate-800 uppercase"><span>Grand Total</span><span id="cart-total" class="text-emerald-400 font-mono">Rs. 0</span></div>
                     </div>
 
                     <form id="checkout-form" onsubmit="handleCheckoutSubmit(event)" class="space-y-3 pt-2">
                         <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Shipping Details:</p>
-                        <input type="text" id="cust-name" required placeholder="Full Name" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3.5 py-2.5 text-xs focus:outline-none focus:border-blue-500 text-white placeholder-slate-500">
-                        <input type="tel" id="cust-phone" required placeholder="Phone / Mobile Number" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3.5 py-2.5 text-xs focus:outline-none focus:border-blue-500 text-white placeholder-slate-500">
-                        <textarea id="cust-address" required placeholder="Complete Delivery Address" rows="2" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3.5 py-2.5 text-xs focus:outline-none focus:border-blue-500 text-white placeholder-slate-500"></textarea>
+                        <input type="text" id="cust-name" required placeholder="Full Name" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3.5 py-2.5 text-xs focus:outline-none focus:border-emerald-500 text-white placeholder-slate-500">
+                        <input type="tel" id="cust-phone" required placeholder="Phone / Mobile Number" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3.5 py-2.5 text-xs focus:outline-none focus:border-emerald-500 text-white placeholder-slate-500">
+                        <textarea id="cust-address" required placeholder="Complete Delivery Address" rows="2" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3.5 py-2.5 text-xs focus:outline-none focus:border-emerald-500 text-white placeholder-slate-500"></textarea>
 
                         <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest pt-2">Payment Method:</p>
                         <div class="grid grid-cols-2 gap-2">
-                            <label class="flex items-center gap-2 p-2.5 rounded-lg bg-slate-950 border border-slate-800 cursor-pointer hover:border-blue-500">
+                            <label class="flex items-center gap-2 p-2.5 rounded-lg bg-slate-950 border border-slate-800 cursor-pointer hover:border-emerald-500 transition">
                                 <input type="radio" name="payment_method" value="COD" checked onclick="togglePaymentChoice('COD')">
                                 <span class="text-xs font-bold text-white">COD</span>
                             </label>
-                            <label class="flex items-center gap-2 p-2.5 rounded-lg bg-slate-950 border border-slate-800 cursor-pointer hover:border-emerald-500">
+                            <label class="flex items-center gap-2 p-2.5 rounded-lg bg-slate-950 border border-slate-800 cursor-pointer hover:border-emerald-500 transition">
                                 <input type="radio" name="payment_method" value="Easypaisa" onclick="togglePaymentChoice('Easypaisa')">
                                 <span class="text-xs font-bold text-emerald-400">Easypaisa</span>
                             </label>
                         </div>
 
-                        <button type="submit" id="btn-submit-order" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-extrabold py-3.5 rounded-lg transition text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-blue-600/30">
+                        <button type="submit" id="btn-submit-order" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-3.5 rounded-lg transition text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30">
                             Place Order Now
                         </button>
                     </form>
@@ -251,31 +252,32 @@
 
         <!-- PAGE 5: ABOUT -->
         <section id="page-about" class="page-view hidden space-y-6 max-w-3xl mx-auto text-center px-2">
-            <span class="text-blue-400 font-bold text-[10px] uppercase tracking-widest">Brand Heritage</span>
-            <h2 class="text-2xl sm:text-3xl font-extrabold text-white uppercase tracking-wider">MT Store</h2>
-            <p class="text-slate-300 text-xs sm:text-sm leading-relaxed">Welcome to <b class="text-white">MT Store</b>. We deliver high-quality traditional shalwar kameez, western wear, and luxury unstitched/stitched collections throughout Pakistan with 100% fabric quality guarantee.</p>
+            <span class="text-emerald-400 font-bold text-[10px] uppercase tracking-widest">Brand Heritage</span>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-white uppercase tracking-wider">A.K Textiles</h2>
+            <p class="text-slate-300 text-xs sm:text-sm leading-relaxed">Welcome to <b class="text-white">A.K Textiles</b>, founded and managed by <b class="text-white">Ayyan Khaskheli</b>. We take immense pride in crafting and delivering supreme-quality traditional shalwar kameez, western wear, and luxury unstitched/stitched collections throughout Pakistan, backed by a 100% fabric quality guarantee.</p>
         </section>
 
         <!-- PAGE 6: CONTACT -->
         <section id="page-contact" class="page-view hidden space-y-6 max-w-2xl mx-auto">
             <div class="text-center space-y-1.5">
-                <span class="text-blue-400 font-bold text-[10px] uppercase tracking-widest">Reach Out</span>
+                <span class="text-emerald-400 font-bold text-[10px] uppercase tracking-widest">Reach Out</span>
                 <h2 class="text-2xl sm:text-3xl font-extrabold text-white uppercase tracking-wider">Contact Store Owner</h2>
             </div>
 
-            <div class="p-6 sm:p-8 rounded-2xl bg-slate-900/80 border border-slate-800 text-center space-y-6 shadow-xl">
-                <div class="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-full bg-blue-600 text-white flex items-center justify-center font-black text-xl sm:text-2xl shadow-lg shadow-blue-600/30">MT</div>
+            <div class="p-6 sm:p-8 rounded-3xl bg-slate-900/80 border border-slate-800 text-center space-y-6 shadow-xl">
+                <div class="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-2xl bg-gradient-to-tr from-emerald-600 to-emerald-500 text-white flex items-center justify-center font-black text-xl sm:text-2xl shadow-lg shadow-emerald-600/30">AK</div>
                 <div>
-                    <h3 class="text-lg sm:text-xl font-bold text-white uppercase tracking-wider">MT Store</h3>
-                    <p class="text-xs text-slate-400 font-semibold mt-1">Owner Email: lagharitahir08@gmail.com</p>
+                    <h3 class="text-lg sm:text-xl font-bold text-white uppercase tracking-wider">A.K Textiles</h3>
+                    <p class="text-xs text-slate-300 font-semibold mt-1">Owner: Ayyan Khaskheli</p>
+                    <p class="text-xs text-slate-400 font-semibold mt-0.5">Email: ayyankhaskheli@gmail.com</p>
                 </div>
 
                 <div class="flex flex-col sm:flex-row justify-center gap-3 text-xs font-bold pt-2">
-                    <a href="https://wa.me/923123735457?text=Hello%20MT%20Store%2C%20I%20have%20an%20inquiry." target="_blank" rel="noopener noreferrer" class="px-5 py-3.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 uppercase tracking-wider">
+                    <a href="https://wa.me/923123735457?text=Hello%20A.K%20Textiles%2C%20I%20have%20an%20inquiry." target="_blank" rel="noopener noreferrer" class="px-5 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 uppercase tracking-wider">
                         <i class="fa-brands fa-whatsapp text-lg"></i> Chat On WhatsApp
                     </a>
 
-                    <a href="tel:03123735457" class="px-5 py-3.5 rounded-lg bg-slate-800 border border-slate-700 hover:border-blue-500 text-white transition flex items-center justify-center gap-2 uppercase tracking-wider">
+                    <a href="tel:03123735457" class="px-5 py-3.5 rounded-xl bg-slate-800 border border-slate-700 hover:border-emerald-500 text-white transition flex items-center justify-center gap-2 uppercase tracking-wider">
                         <i class="fa-solid fa-phone"></i> 03123735457
                     </a>
                 </div>
@@ -318,26 +320,26 @@
     <div id="user-auth-modal" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-800 p-6 sm:p-8 rounded-2xl max-w-sm w-full space-y-5 shadow-2xl">
             <div class="text-center space-y-1">
-                <div class="w-12 h-12 sm:w-14 sm:h-14 mx-auto rounded-full bg-blue-600 text-white flex items-center justify-center font-black text-xl shadow-lg shadow-blue-600/30 mb-2">MT</div>
+                <div class="w-12 h-12 sm:w-14 sm:h-14 mx-auto rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-black text-xl shadow-lg shadow-emerald-600/30 mb-2">AK</div>
                 <h3 id="auth-modal-title" class="text-lg font-bold text-white uppercase tracking-wider">Customer Login</h3>
                 <p class="text-[11px] text-slate-400">Please sign in to access your personal store account</p>
             </div>
 
             <form id="user-login-form" onsubmit="handleUserLogin(event)" class="space-y-3">
-                <input type="email" id="login-email" required placeholder="Email Address" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
-                <input type="password" id="login-password" required placeholder="Password" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
-                <button type="submit" id="login-submit-btn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-extrabold py-3 rounded-lg transition text-xs uppercase tracking-wider shadow-lg shadow-blue-600/30">Login</button>
+                <input type="email" id="login-email" required placeholder="Email Address" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500">
+                <input type="password" id="login-password" required placeholder="Password" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500">
+                <button type="submit" id="login-submit-btn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-3 rounded-lg transition text-xs uppercase tracking-wider shadow-lg shadow-emerald-600/30">Login</button>
             </form>
 
             <form id="user-signup-form" onsubmit="handleUserSignUp(event)" class="space-y-3 hidden">
-                <input type="text" id="signup-name" required placeholder="Full Name" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
-                <input type="email" id="signup-email" required placeholder="Email Address" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
-                <input type="password" id="signup-password" required placeholder="Password (min 6 characters)" minlength="6" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500">
-                <button type="submit" id="signup-submit-btn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-extrabold py-3 rounded-lg transition text-xs uppercase tracking-wider shadow-lg shadow-blue-600/30">Create Account</button>
+                <input type="text" id="signup-name" required placeholder="Full Name" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500">
+                <input type="email" id="signup-email" required placeholder="Email Address" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500">
+                <input type="password" id="signup-password" required placeholder="Password (min 6 characters)" minlength="6" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500">
+                <button type="submit" id="signup-submit-btn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-3 rounded-lg transition text-xs uppercase tracking-wider shadow-lg shadow-emerald-600/30">Create Account</button>
             </form>
 
             <div class="text-center border-t border-slate-800 pt-3">
-                <button type="button" id="auth-toggle-btn" onclick="toggleAuthMode()" class="text-xs text-blue-400 hover:underline">Don't have an account? Sign Up</button>
+                <button type="button" id="auth-toggle-btn" onclick="toggleAuthMode()" class="text-xs text-emerald-400 hover:underline">Don't have an account? Sign Up</button>
             </div>
             <button id="auth-close-btn" onclick="closeUserAuthModal()" class="w-full text-slate-400 text-xs font-semibold hover:text-white uppercase tracking-wider hidden">Close</button>
         </div>
@@ -346,15 +348,15 @@
     <!-- FULL SCREEN ORDER SUCCESS POPUP -->
     <div id="order-success-modal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-800 p-8 sm:p-10 rounded-2xl max-w-md w-full text-center space-y-6 shadow-2xl">
-            <div class="w-16 h-16 mx-auto rounded-full bg-blue-600 text-white flex items-center justify-center text-2xl font-bold shadow-lg shadow-blue-600/30">
+            <div class="w-16 h-16 mx-auto rounded-full bg-emerald-600 text-white flex items-center justify-center text-2xl font-bold shadow-lg shadow-emerald-600/30">
                 <i class="fa-solid fa-check"></i>
             </div>
             <div class="space-y-2">
                 <h3 class="text-xl font-black text-white uppercase tracking-wider">Your Order Is Placed</h3>
-                <p class="text-xs text-slate-300">Your order has been submitted. You can track its approval status under <b>"My Orders"</b>.</p>
+                <p class="text-xs text-slate-300">Your order has been submitted to A.K Textiles. You can track its status under <b>"My Orders"</b>.</p>
             </div>
             <div class="flex flex-col gap-2 pt-2">
-                <button onclick="closeOrderSuccessModal(); switchPage('orders');" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-extrabold py-3.5 rounded-lg text-xs uppercase tracking-wider transition">
+                <button onclick="closeOrderSuccessModal(); switchPage('orders');" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-3.5 rounded-lg text-xs uppercase tracking-wider transition">
                     View My Orders
                 </button>
             </div>
@@ -373,14 +375,14 @@
     <div id="admin-login-modal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-800 p-6 sm:p-8 rounded-2xl max-w-sm w-full space-y-5">
             <div class="text-center space-y-2">
-                <div class="w-12 h-12 mx-auto rounded-lg bg-blue-950 border border-blue-800 text-blue-400 flex items-center justify-center text-lg"><i class="fa-solid fa-lock"></i></div>
+                <div class="w-12 h-12 mx-auto rounded-xl bg-emerald-950 border border-emerald-800 text-emerald-400 flex items-center justify-center text-lg"><i class="fa-solid fa-lock"></i></div>
                 <h3 class="text-base sm:text-lg font-bold text-white uppercase tracking-wider">Admin Authentication</h3>
                 <p class="text-[11px] text-slate-400">Enter Admin Passcode</p>
             </div>
             <form onsubmit="verifyAdminPassword(event)" class="space-y-4">
-                <input type="password" id="admin-pass-input" placeholder="Password" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-xs text-center font-mono focus:outline-none focus:border-blue-500 text-white">
+                <input type="password" id="admin-pass-input" placeholder="Password" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-xs text-center font-mono focus:outline-none focus:border-emerald-500 text-white">
                 <p id="admin-pass-error" class="text-xs text-rose-500 text-center hidden">Invalid Key!</p>
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-extrabold py-3 rounded-lg transition text-xs uppercase tracking-wider">Access Dashboard</button>
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-3 rounded-lg transition text-xs uppercase tracking-wider">Access Dashboard</button>
             </form>
             <button onclick="closeAdminModal()" class="w-full text-slate-400 text-xs font-semibold hover:text-white uppercase tracking-wider">Cancel</button>
         </div>
@@ -391,8 +393,8 @@
         <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 space-y-6">
             <div class="flex justify-between items-center border-b border-slate-800 pb-4">
                 <div>
-                    <h3 class="text-base sm:text-xl font-bold text-white uppercase tracking-wider flex items-center gap-2"><i class="fa-solid fa-sliders text-blue-500"></i> Admin Control Panel</h3>
-                    <p class="text-[10px] sm:text-xs text-slate-400">Seller Control Panel & Store Management</p>
+                    <h3 class="text-base sm:text-xl font-bold text-white uppercase tracking-wider flex items-center gap-2"><i class="fa-solid fa-sliders text-emerald-500"></i> Admin Control Panel</h3>
+                    <p class="text-[10px] sm:text-xs text-slate-400">Ayyan Khaskheli — A.K Textiles Management</p>
                 </div>
                 <div class="flex items-center gap-2">
                     <button onclick="adminLogout()" class="bg-slate-800 border border-slate-700 hover:border-rose-500 text-slate-300 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
@@ -402,36 +404,36 @@
 
             <!-- Change Admin Password -->
             <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-3">
-                <h4 class="font-bold text-white text-xs uppercase tracking-wider flex items-center gap-2"><i class="fa-solid fa-key text-blue-400"></i> Change Admin Password</h4>
+                <h4 class="font-bold text-white text-xs uppercase tracking-wider flex items-center gap-2"><i class="fa-solid fa-key text-emerald-400"></i> Change Admin Password</h4>
                 <form onsubmit="handleAdminPasswordChange(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                         <label class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Current Password:</label>
-                        <input type="password" id="admin-current-pass" required class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-blue-500 text-white mt-1">
+                        <input type="password" id="admin-current-pass" required class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-emerald-500 text-white mt-1">
                     </div>
                     <div>
                         <label class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">New Password:</label>
-                        <input type="password" id="admin-new-pass" required minlength="3" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-blue-500 text-white mt-1">
+                        <input type="password" id="admin-new-pass" required minlength="3" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-emerald-500 text-white mt-1">
                     </div>
                     <div class="flex items-end">
-                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-extrabold py-2 rounded-lg text-xs transition uppercase tracking-wider">Update Password</button>
+                        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-2 rounded-lg text-xs transition uppercase tracking-wider">Update Password</button>
                     </div>
                 </form>
             </div>
 
             <!-- Delivery Settings -->
             <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-3">
-                <h4 class="font-bold text-white text-xs uppercase tracking-wider flex items-center gap-2"><i class="fa-solid fa-truck text-blue-400"></i> Store Delivery Settings</h4>
+                <h4 class="font-bold text-white text-xs uppercase tracking-wider flex items-center gap-2"><i class="fa-solid fa-truck text-emerald-400"></i> Store Delivery Settings</h4>
                 <form onsubmit="handleDeliverySettingsUpdate(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                         <label class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Delivery Fee (PKR):</label>
-                        <input type="number" id="setting-delivery-fee" required min="0" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-blue-500 text-white mt-1">
+                        <input type="number" id="setting-delivery-fee" required min="0" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-emerald-500 text-white mt-1">
                     </div>
                     <div>
                         <label class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Free Shipping Threshold (PKR):</label>
-                        <input type="number" id="setting-free-limit" required min="0" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-blue-500 text-white mt-1">
+                        <input type="number" id="setting-free-limit" required min="0" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-emerald-500 text-white mt-1">
                     </div>
                     <div class="flex items-end">
-                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-extrabold py-2 rounded-lg text-xs transition uppercase tracking-wider">Update Settings</button>
+                        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-2 rounded-lg text-xs transition uppercase tracking-wider">Update Settings</button>
                     </div>
                 </form>
             </div>
@@ -439,18 +441,18 @@
             <!-- Orders Manager -->
             <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-3">
                 <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-                    <h4 class="font-bold text-white text-xs uppercase tracking-wider"><i class="fa-solid fa-receipt text-blue-400"></i> Customer Orders Manager</h4>
-                    <span id="admin-orders-count-badge" class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">0 Orders</span>
+                    <h4 class="font-bold text-white text-xs uppercase tracking-wider"><i class="fa-solid fa-receipt text-emerald-400"></i> Customer Orders Manager</h4>
+                    <span id="admin-orders-count-badge" class="bg-emerald-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">0 Orders</span>
                 </div>
                 <div id="admin-orders-list" class="space-y-3 max-h-64 overflow-y-auto pr-1"></div>
             </div>
 
             <!-- Category Manager -->
             <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-3">
-                <h4 class="font-bold text-white text-xs uppercase tracking-wider"><i class="fa-solid fa-tags text-blue-400"></i> Categories Control</h4>
+                <h4 class="font-bold text-white text-xs uppercase tracking-wider"><i class="fa-solid fa-tags text-emerald-400"></i> Categories Control</h4>
                 <form onsubmit="handleCategoryAdd(event)" class="flex gap-2">
-                    <input type="text" id="new-cat-input" required placeholder="New category..." class="flex-1 bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-blue-500 text-white">
-                    <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white font-extrabold px-4 py-2 rounded-lg text-xs transition uppercase">Add</button>
+                    <input type="text" id="new-cat-input" required placeholder="New category..." class="flex-1 bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-emerald-500 text-white">
+                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold px-4 py-2 rounded-lg text-xs transition uppercase">Add</button>
                 </form>
                 <div id="admin-categories-tags" class="flex flex-wrap gap-2 pt-1"></div>
             </div>
@@ -458,7 +460,7 @@
             <!-- Product Upload/Edit Form -->
             <form id="cloth-form" onsubmit="handleFormSubmit(event)" class="bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-4">
                 <div class="flex justify-between items-center">
-                    <h4 id="form-title" class="font-bold text-white text-xs uppercase tracking-wider flex items-center gap-2"><i class="fa-solid fa-plus text-blue-400"></i> Add New Clothes Item</h4>
+                    <h4 id="form-title" class="font-bold text-white text-xs uppercase tracking-wider flex items-center gap-2"><i class="fa-solid fa-plus text-emerald-400"></i> Add New Fabric / Clothes Item</h4>
                     <button type="button" id="cancel-edit-btn" onclick="resetForm()" class="hidden text-xs text-rose-400 hover:text-rose-300 font-bold uppercase">Cancel Edit</button>
                 </div>
 
@@ -467,19 +469,19 @@
                 <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
                     <div>
                         <label class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Item Name:</label>
-                        <input type="text" id="form-name" required placeholder="Embroidered Kurta" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-blue-500 text-white mt-1">
+                        <input type="text" id="form-name" required placeholder="Embroidered Kurta Suit" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-emerald-500 text-white mt-1">
                     </div>
                     <div>
                         <label class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Price (PKR):</label>
-                        <input type="number" id="form-price" required placeholder="4500" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-blue-500 text-white mt-1">
+                        <input type="number" id="form-price" required placeholder="4500" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-emerald-500 text-white mt-1">
                     </div>
                     <div>
                         <label class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Category:</label>
-                        <select id="form-cat" required class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-blue-500 text-slate-300 mt-1"></select>
+                        <select id="form-cat" required class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-emerald-500 text-slate-300 mt-1"></select>
                     </div>
                     <div>
                         <label class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Stock Status:</label>
-                        <select id="form-status" required class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-blue-500 text-slate-300 mt-1">
+                        <select id="form-status" required class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-emerald-500 text-slate-300 mt-1">
                             <option value="Available">Available</option>
                             <option value="Sold Out">Sold Out</option>
                         </select>
@@ -490,13 +492,13 @@
                     <label class="text-[10px] text-slate-400 uppercase font-bold tracking-wider block mb-1">Product Images:</label>
 
                     <div class="flex flex-col sm:flex-row gap-2 mb-2">
-                        <label for="form-image-file-input" class="flex-1 cursor-pointer flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-wider py-2.5 rounded-lg transition">
+                        <label for="form-image-file-input" class="flex-1 cursor-pointer flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider py-2.5 rounded-lg transition">
                             <i class="fa-solid fa-images"></i> Choose From Gallery
                         </label>
                         <input type="file" id="form-image-file-input" accept="image/*" multiple class="hidden" onchange="handleGalleryFileSelect(event)">
                     </div>
-                    <p id="image-upload-hint" class="text-[10px] text-amber-400 mb-2 leading-relaxed"><i class="fa-solid fa-triangle-exclamation"></i> Images are compressed automatically and stored directly in the database. For best results, choose small/compressed photos (under ~300 KB each). You can still paste image URLs below instead.</p>
-                    <input type="text" id="form-urls" placeholder="Image URLs separated by commas (,) — optional if you used gallery above" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-blue-500 text-white">
+                    <p id="image-upload-hint" class="text-[10px] text-amber-400 mb-2 leading-relaxed"><i class="fa-solid fa-triangle-exclamation"></i> Images are compressed automatically and stored in database. Choose compressed photos (under ~300 KB each) or paste image URLs below.</p>
+                    <input type="text" id="form-urls" placeholder="Image URLs separated by commas (,)" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-emerald-500 text-white">
 
                     <div id="image-preview-container" class="mt-3 hidden bg-slate-900 p-3 rounded-lg border border-slate-800 space-y-2">
                         <div class="flex justify-between items-center">
@@ -509,10 +511,10 @@
 
                 <div>
                     <label class="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Product Description:</label>
-                    <textarea id="form-desc" rows="2" placeholder="Fabric quality, sizing details..." class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-blue-500 text-white mt-1"></textarea>
+                    <textarea id="form-desc" rows="2" placeholder="Fabric quality, embroidery details, sizing..." class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-emerald-500 text-white mt-1"></textarea>
                 </div>
 
-                <button type="submit" id="form-submit-btn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-extrabold py-3 rounded-lg transition text-xs uppercase tracking-wider">Publish Item</button>
+                <button type="submit" id="form-submit-btn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-3 rounded-lg transition text-xs uppercase tracking-wider">Publish Item</button>
             </form>
 
             <div class="space-y-3">
@@ -525,12 +527,12 @@
     <footer class="border-t border-slate-800 bg-slate-950 py-6 sm:py-8 mt-12 sm:mt-16">
         <div class="max-w-7xl mx-auto px-4 text-center sm:flex sm:justify-between sm:items-center text-xs text-slate-400 space-y-3 sm:space-y-0 uppercase tracking-wider">
             <div>
-                <span class="font-bold text-white">MT STORE</span> &copy; 2026.
+                <span class="font-bold text-white">A.K TEXTILES</span> &copy; 2026. Managed by Ayyan Khaskheli.
             </div>
             <div class="flex justify-center items-center gap-4 text-[11px]">
                 <a href="https://wa.me/923123735457" target="_blank" class="hover:text-emerald-400 transition flex items-center gap-1"><i class="fa-brands fa-whatsapp text-sm"></i> WhatsApp</a>
                 <span>|</span>
-                <a href="tel:03123735457" class="hover:text-blue-400 transition">Phone: 03123735457</a>
+                <a href="tel:03123735457" class="hover:text-emerald-400 transition">Phone: 03123735457</a>
             </div>
         </div>
     </footer>
@@ -558,7 +560,7 @@
         // =================================================================
         // STATE
         // =================================================================
-        const initialCategories = ["Kurta Suits", "Unstitched", "Western Wear", "Luxury Pret", "Winter Collection"];
+        const initialCategories = ["Kurta Suits", "Unstitched Fabrics", "Western Wear", "Luxury Pret", "Winter Collection"];
 
         const initialClothes = {
             "101": {
@@ -567,7 +569,7 @@
                 price: 5500,
                 category: "Kurta Suits",
                 isAvailable: true,
-                description: "Premium Egyptian Cotton with fine embroidery on neckline. Comes with matching trousers.",
+                description: "Premium Egyptian Cotton with fine embroidery on neckline. Comes with matching trousers by A.K Textiles.",
                 image: "https://images.unsplash.com/photo-1516762689617-e1cffffd478d?auto=format&fit=crop&w=600&q=80",
                 images: [
                     "https://images.unsplash.com/photo-1516762689617-e1cffffd478d?auto=format&fit=crop&w=600&q=80",
@@ -578,7 +580,7 @@
                 id: 102,
                 name: "Women's 3-Piece Lawn Collection",
                 price: 4200,
-                category: "Unstitched",
+                category: "Unstitched Fabrics",
                 isAvailable: true,
                 description: "Digital printed lawn shirt with embroidered chiffon dupatta and dyed trousers.",
                 image: "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?auto=format&fit=crop&w=600&q=80",
@@ -589,7 +591,6 @@
             }
         };
 
-        // Fallback default admin password used only if none is stored yet in Firebase.
         const DEFAULT_ADMIN_PASSWORD = "123";
 
         let state = {
@@ -622,7 +623,7 @@
             const toast = document.createElement('div');
 
             let bgBorder = 'bg-slate-900 border-slate-700 text-slate-200';
-            let icon = '<i class="fa-solid fa-circle-info text-blue-400"></i>';
+            let icon = '<i class="fa-solid fa-circle-info text-emerald-400"></i>';
 
             if (type === 'success') {
                 bgBorder = 'bg-slate-900 border-emerald-500/50 text-white';
@@ -687,7 +688,7 @@
         }
 
         // =================================================================
-        // FIREBASE REALTIME LISTENERS
+        // FIREBASE LISTENERS & AUTH
         // =================================================================
         function attachRealtimeListeners() {
             rtdb.ref('categories').on('value', (snap) => {
@@ -704,9 +705,6 @@
                 renderCategorySelectOptions();
                 if (state.isAdminLoggedIn) renderAdminCategories();
                 markFirebaseReady();
-            }, (err) => {
-                console.error('categories listener error:', err);
-                showToast('Could not load categories: ' + err.message, 'error');
             });
 
             rtdb.ref('clothes').on('value', (snap) => {
@@ -722,9 +720,6 @@
                 renderShopGrid();
                 if (state.isAdminLoggedIn) renderAdminDashboard();
                 markFirebaseReady();
-            }, (err) => {
-                console.error('clothes listener error:', err);
-                showToast('Could not load products: ' + err.message, 'error');
             });
 
             rtdb.ref('settings').on('value', (snap) => {
@@ -740,9 +735,8 @@
                     document.getElementById('setting-delivery-fee').value = state.settings.deliveryFee;
                     document.getElementById('setting-free-limit').value = state.settings.freeDeliveryLimit;
                 }
-            }, (err) => console.error('settings listener error:', err));
+            });
 
-            // Admin password is stored under its own node so it can be changed from the dashboard.
             rtdb.ref('adminAuth/password').on('value', (snap) => {
                 const val = snap.val();
                 if (val) {
@@ -751,7 +745,7 @@
                     state.adminPassword = DEFAULT_ADMIN_PASSWORD;
                     rtdb.ref('adminAuth/password').set(DEFAULT_ADMIN_PASSWORD).catch(() => {});
                 }
-            }, (err) => console.error('adminAuth listener error:', err));
+            });
 
             rtdb.ref('orders').on('value', (snap) => {
                 const val = snap.val();
@@ -763,9 +757,6 @@
                 }
                 renderOrdersView();
                 if (state.isAdminLoggedIn) renderAdminOrdersList();
-            }, (err) => {
-                console.error('orders listener error:', err);
-                showToast('Could not load orders: ' + err.message, 'error');
             });
         }
 
@@ -776,9 +767,6 @@
             }
         }
 
-        // =================================================================
-        // FIREBASE AUTH
-        // =================================================================
         function checkAuthOnStartup() {
             fbAuth.onAuthStateChanged((user) => {
                 if (user) {
@@ -808,26 +796,14 @@
             btn.innerText = "Creating Account...";
 
             fbAuth.createUserWithEmailAndPassword(email, password)
-                .then((cred) => {
-                    return cred.user.updateProfile({ displayName: name }).then(() => cred.user);
-                })
-                .then((user) => {
-                    return rtdb.ref('users/' + user.uid).set({
-                        name, email, createdAt: Date.now()
-                    });
-                })
+                .then((cred) => cred.user.updateProfile({ displayName: name }).then(() => cred.user))
+                .then((user) => rtdb.ref('users/' + user.uid).set({ name, email, createdAt: Date.now() }))
                 .then(() => {
-                    notifyBackend('/api/users/signup', { name, email }).catch(() => {});
                     document.getElementById('user-auth-modal').classList.add('hidden');
                     showToast("Account created successfully!", "success");
                 })
-                .catch((err) => {
-                    showToast(friendlyAuthError(err), "error");
-                })
-                .finally(() => {
-                    btn.disabled = false;
-                    btn.innerText = "Create Account";
-                });
+                .catch((err) => showToast(friendlyAuthError(err), "error"))
+                .finally(() => { btn.disabled = false; btn.innerText = "Create Account"; });
         }
 
         function handleUserLogin(e) {
@@ -844,19 +820,12 @@
                     document.getElementById('user-auth-modal').classList.add('hidden');
                     showToast(`Welcome back, ${cred.user.displayName || email}!`, "success");
                 })
-                .catch((err) => {
-                    showToast(friendlyAuthError(err), "error");
-                })
-                .finally(() => {
-                    btn.disabled = false;
-                    btn.innerText = "Login";
-                });
+                .catch((err) => showToast(friendlyAuthError(err), "error"))
+                .finally(() => { btn.disabled = false; btn.innerText = "Login"; });
         }
 
         function userLogout() {
-            fbAuth.signOut().then(() => {
-                showToast("Logged out successfully.", "info");
-            });
+            fbAuth.signOut().then(() => showToast("Logged out successfully.", "info"));
         }
 
         function friendlyAuthError(err) {
@@ -865,8 +834,6 @@
             if (code.includes('wrong-password') || code.includes('invalid-credential')) return 'Invalid email or password!';
             if (code.includes('user-not-found')) return 'No account found with this email!';
             if (code.includes('weak-password')) return 'Password must be at least 6 characters!';
-            if (code.includes('invalid-email')) return 'Please enter a valid email address!';
-            if (code.includes('network-request-failed')) return 'Network error — check your connection!';
             return err.message || 'Something went wrong. Please try again.';
         }
 
@@ -877,14 +844,14 @@
             if (state.currentUser) {
                 container.innerHTML = `
                     <div class="flex items-center gap-2">
-                        <span class="text-xs font-bold text-slate-300 hidden sm:inline"><i class="fa-solid fa-user text-blue-400"></i> ${escapeHTML(state.currentUser.name)}</span>
+                        <span class="text-xs font-bold text-slate-300 hidden sm:inline"><i class="fa-solid fa-user text-emerald-400"></i> ${escapeHTML(state.currentUser.name)}</span>
                         <button onclick="userLogout()" class="px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-rose-400 hover:text-white hover:border-rose-500 text-xs font-bold transition">Logout</button>
                     </div>
                 `;
             } else {
                 container.innerHTML = `
-                    <button onclick="openUserAuthModal('login')" class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:border-blue-500 text-xs font-bold transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-user text-xs text-blue-400"></i> <span>Login / Sign Up</span>
+                    <button onclick="openUserAuthModal('login')" class="px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:border-emerald-500 text-xs font-bold transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-user text-xs text-emerald-400"></i> <span>Login / Sign Up</span>
                     </button>
                 `;
             }
@@ -894,17 +861,14 @@
             state.authMode = mode;
             updateAuthModalUI();
             const closeBtn = document.getElementById('auth-close-btn');
-            if (isForced || !state.currentUser) {
-                closeBtn.classList.add('hidden');
-            } else {
-                closeBtn.classList.remove('hidden');
-            }
+            if (isForced || !state.currentUser) closeBtn.classList.add('hidden');
+            else closeBtn.classList.remove('hidden');
             document.getElementById('user-auth-modal').classList.remove('hidden');
         }
 
         function closeUserAuthModal(fromAuthChange = false) {
             if (!state.currentUser && !fromAuthChange) {
-                showToast("Please login or create an account to view the store.", "warning");
+                showToast("Please login or create an account to view A.K Textiles.", "warning");
                 return;
             }
             document.getElementById('user-auth-modal').classList.add('hidden');
@@ -935,36 +899,24 @@
         }
 
         // =================================================================
-        // CART
+        // CART & CHECKOUT
         // =================================================================
-        function saveCart() {
-            localStorage.setItem('mt_cart_pkr', JSON.stringify(state.cart));
-        }
-
+        function saveCart() { localStorage.setItem('ak_cart_pkr', JSON.stringify(state.cart)); }
         function loadCart() {
-            const storedCart = localStorage.getItem('mt_cart_pkr');
-            if (storedCart) {
-                try { state.cart = JSON.parse(storedCart); } catch (e) { state.cart = []; }
-            }
+            const stored = localStorage.getItem('ak_cart_pkr');
+            if (stored) { try { state.cart = JSON.parse(stored); } catch (e) { state.cart = []; } }
         }
 
         window.addToCart = function(id) {
             const item = state.clothes.find(c => Number(c.id) === Number(id));
             if (!item) return;
-
-            if (item.isAvailable === false) {
-                showToast("Sorry, this item is currently Sold Out!", "warning");
-                return;
-            }
+            if (item.isAvailable === false) { showToast("Sorry, this item is currently Sold Out!", "warning"); return; }
 
             const sizeToUse = state.selectedSize || 'M';
             const existing = state.cart.find(c => Number(c.id) === Number(id) && c.size === sizeToUse);
 
-            if (existing) {
-                existing.qty += 1;
-            } else {
-                state.cart.push({ ...item, qty: 1, size: sizeToUse });
-            }
+            if (existing) existing.qty += 1;
+            else state.cart.push({ ...item, qty: 1, size: sizeToUse });
 
             saveCart();
             updateCartBadge();
@@ -974,10 +926,7 @@
 
         window.directBuyNow = function(id) {
             const item = state.clothes.find(c => Number(c.id) === Number(id));
-            if (item && item.isAvailable === false) {
-                showToast("Sorry, this item is currently Sold Out!", "warning");
-                return;
-            }
+            if (item && item.isAvailable === false) { showToast("Sorry, this item is currently Sold Out!", "warning"); return; }
             window.addToCart(id);
             switchPage('cart');
         };
@@ -985,12 +934,8 @@
         window.updateCartQty = function(id, size, delta) {
             const item = state.cart.find(c => Number(c.id) === Number(id) && c.size === size);
             if (!item) return;
-
             item.qty += delta;
-            if (item.qty <= 0) {
-                state.cart = state.cart.filter(c => !(Number(c.id) === Number(id) && c.size === size));
-            }
-
+            if (item.qty <= 0) state.cart = state.cart.filter(c => !(Number(c.id) === Number(id) && c.size === size));
             saveCart();
             renderCartView();
             updateCartBadge();
@@ -1019,12 +964,12 @@
                 subtotal += total;
                 const thumb = (item.images && item.images.length > 0) ? item.images[0] : item.image;
                 return `
-                    <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-xl flex items-center justify-between gap-3">
+                    <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-xl flex items-center justify-between gap-3 shadow-md">
                         <div class="flex items-center gap-4">
                             <img src="${escapeHTML(thumb)}" class="w-14 h-14 object-cover rounded-lg bg-slate-950 shrink-0 border border-slate-800">
                             <div>
                                 <h4 class="font-bold text-white text-xs sm:text-sm line-clamp-1">${escapeHTML(item.name)}</h4>
-                                <p class="text-[10px] text-slate-400 uppercase font-bold mt-0.5">Size: <span class="text-blue-400">${escapeHTML(item.size || 'M')}</span></p>
+                                <p class="text-[10px] text-slate-400 uppercase font-bold mt-0.5">Size/Type: <span class="text-emerald-400">${escapeHTML(item.size || 'M')}</span></p>
                                 <p class="text-xs text-slate-200 font-mono font-bold mt-0.5">Rs. ${item.price.toLocaleString()}</p>
                             </div>
                         </div>
@@ -1045,12 +990,7 @@
             document.getElementById('cart-total').innerText = `Rs. ${grandTotal.toLocaleString()}`;
         }
 
-        // =================================================================
-        // CHECKOUT / ORDER PLACEMENT
-        // =================================================================
-        function togglePaymentChoice(method) {
-            state.selectedPaymentMethod = method;
-        }
+        function togglePaymentChoice(method) { state.selectedPaymentMethod = method; }
 
         function handleCheckoutSubmit(e) {
             e.preventDefault();
@@ -1059,11 +999,7 @@
                 openUserAuthModal('login', true);
                 return;
             }
-
-            if (state.cart.length === 0) {
-                showToast("Shopping cart is empty!", "warning");
-                return;
-            }
+            if (state.cart.length === 0) { showToast("Shopping cart is empty!", "warning"); return; }
 
             const name = document.getElementById('cust-name').value;
             const phone = document.getElementById('cust-phone').value;
@@ -1074,7 +1010,7 @@
             const grandTotal = subtotal + delivery;
 
             state.pendingOrderData = {
-                orderId: 'ORD-' + Date.now(),
+                orderId: 'AK-' + Date.now(),
                 timestamp: Date.now(),
                 userId: state.currentUser.uid,
                 userEmail: state.currentUser.email,
@@ -1095,7 +1031,7 @@
             };
 
             if (state.selectedPaymentMethod === 'Easypaisa') {
-                document.getElementById('easypaisa-msg').innerText = `Send Money (Rs. ${grandTotal.toLocaleString()}) to this easypaisa Account number 03113841402 Name perozahmed`;
+                document.getElementById('easypaisa-msg').innerText = `Send Money (Rs. ${grandTotal.toLocaleString()}) to Easypaisa account 03123735457 (Ayyan Khaskheli)`;
                 document.getElementById('easypaisa-account-name').value = '';
                 document.getElementById('easypaisa-account-no').value = '';
                 document.getElementById('easypaisa-trx-id').value = '';
@@ -1105,9 +1041,7 @@
             }
         }
 
-        function closeEasypaisaModal() {
-            document.getElementById('easypaisa-modal').classList.add('hidden');
-        }
+        function closeEasypaisaModal() { document.getElementById('easypaisa-modal').classList.add('hidden'); }
 
         function confirmEasypaisaPayment() {
             const accountName = document.getElementById('easypaisa-account-name').value.trim();
@@ -1132,11 +1066,6 @@
 
             try {
                 await rtdb.ref('orders/' + newOrder.orderId).set(newOrder);
-
-                notifyBackend('/api/orders/new', newOrder).catch((err) => {
-                    console.warn('Order email notification failed (order still saved):', err);
-                });
-
                 state.cart = [];
                 saveCart();
                 renderCartView();
@@ -1144,7 +1073,6 @@
                 document.getElementById('checkout-form').reset();
                 showOrderSuccessModal();
             } catch (err) {
-                console.error('Order placement failed:', err);
                 showToast('Failed to place order: ' + err.message, 'error');
             } finally {
                 btnSubmit.disabled = false;
@@ -1152,22 +1080,8 @@
             }
         }
 
-        async function notifyBackend(path, body) {
-            const url = (BACKEND_URL || '') + path;
-            const res = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
-            });
-            if (!res.ok) {
-                const text = await res.text().catch(() => '');
-                throw new Error(`Backend responded ${res.status}: ${text}`);
-            }
-            return res.json().catch(() => ({}));
-        }
-
         // =================================================================
-        // ORDERS VIEW
+        // ORDERS VIEW & NAVIGATION
         // =================================================================
         function renderOrdersView() {
             const container = document.getElementById('orders-history-container');
@@ -1191,7 +1105,6 @@
             container.innerHTML = userOrders.map(order => {
                 const timeDiff = now - order.timestamp;
                 const isWithin24Hours = timeDiff <= twentyFourHoursMs;
-
                 const remainingSecondsTotal = Math.max(0, Math.ceil((twentyFourHoursMs - timeDiff) / 1000));
                 const hoursRemaining = Math.floor(remainingSecondsTotal / 3600);
                 const minutesRemaining = Math.floor((remainingSecondsTotal % 3600) / 60);
@@ -1209,7 +1122,7 @@
 
                 let statusBadge = '';
                 if (order.status === 'Approved' || order.paymentDone) {
-                    statusBadge = `<span class="px-2.5 py-1 rounded bg-emerald-950 border border-emerald-800 text-emerald-400 text-[10px] font-bold uppercase tracking-wider">Payment Done (Approved)</span>`;
+                    statusBadge = `<span class="px-2.5 py-1 rounded bg-emerald-950 border border-emerald-800 text-emerald-400 text-[10px] font-bold uppercase tracking-wider">Approved</span>`;
                 } else if (order.status === 'Rejected') {
                     statusBadge = `<span class="px-2.5 py-1 rounded bg-rose-950 border border-rose-800 text-rose-400 text-[10px] font-bold uppercase tracking-wider">Rejected</span>`;
                 } else if (order.status === 'Cancelled') {
@@ -1228,22 +1141,18 @@
                 }
 
                 return `
-                    <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-xl space-y-3">
+                    <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-xl space-y-3 shadow-md">
                         <div class="flex flex-wrap justify-between items-center border-b border-slate-800 pb-3 gap-2">
                             <div>
                                 <div class="flex items-center gap-2">
-                                    <span class="text-[10px] text-blue-400 font-bold uppercase tracking-widest">${escapeHTML(order.orderId)}</span>
+                                    <span class="text-[10px] text-emerald-400 font-bold uppercase tracking-widest">${escapeHTML(order.orderId)}</span>
                                     ${statusBadge}
                                 </div>
                                 <h4 class="text-xs font-bold text-white mt-1">${escapeHTML(order.customer_name)} (${escapeHTML(order.customer_phone)})</h4>
-                                ${order.trxId ? `
-                                    <p class="text-[11px] text-emerald-400 font-mono mt-0.5">
-                                        TRX ID: ${escapeHTML(order.trxId)} ${order.easypaisaAccountName ? `| Sender: ${escapeHTML(order.easypaisaAccountName)} (${escapeHTML(order.easypaisaAccountNo)})` : ''}
-                                    </p>
-                                ` : ''}
+                                ${order.trxId ? `<p class="text-[11px] text-emerald-400 font-mono mt-0.5">TRX ID: ${escapeHTML(order.trxId)}</p>` : ''}
                             </div>
                             <div class="flex items-center gap-3">
-                                <span class="text-xs font-mono font-black text-blue-400">${escapeHTML(order.grand_total)}</span>
+                                <span class="text-xs font-mono font-black text-emerald-400">${escapeHTML(order.grand_total)}</span>
                                 ${cancelBtnHTML}
                             </div>
                         </div>
@@ -1254,22 +1163,9 @@
         }
 
         async function cancelOrder(orderId) {
-            const order = state.orders.find(o => o.orderId === orderId);
-            if (!order) return;
-
-            const now = Date.now();
-            const twentyFourHoursMs = 24 * 60 * 60 * 1000;
-
-            if ((now - order.timestamp) > twentyFourHoursMs) {
-                showToast("Cancellation limit of 24 hours has expired.", "warning");
-                renderOrdersView();
-                return;
-            }
-
             showConfirm("Cancel Order", "Are you sure you want to cancel this order?", async () => {
                 try {
                     await rtdb.ref('orders/' + orderId + '/status').set('Cancelled');
-                    notifyBackend('/api/orders/cancel', { orderId }).catch(() => {});
                     showToast("Order cancelled successfully.", "info");
                 } catch (err) {
                     showToast('Failed to cancel: ' + err.message, 'error');
@@ -1277,12 +1173,7 @@
             });
         }
 
-        // =================================================================
-        // NAVIGATION
-        // =================================================================
-        function toggleMobileMenu() {
-            document.getElementById('mobile-menu').classList.toggle('hidden');
-        }
+        function toggleMobileMenu() { document.getElementById('mobile-menu').classList.toggle('hidden'); }
 
         function switchPage(pageId) {
             document.querySelectorAll('.page-view').forEach(p => p.classList.add('hidden'));
@@ -1293,18 +1184,18 @@
         function renderBannerText() {
             const banner = document.getElementById('banner-text');
             if (banner) {
-                banner.innerText = `EXPRESS SHIPPING: Free above Rs. ${state.settings.freeDeliveryLimit.toLocaleString()} | Standard Fee: Rs. ${state.settings.deliveryFee} | Official MT Store`;
+                banner.innerText = `EXPRESS SHIPPING: Free above Rs. ${state.settings.freeDeliveryLimit.toLocaleString()} | Standard Fee: Rs. ${state.settings.deliveryFee} | Official A.K Textiles`;
             }
         }
 
         function renderCategoryFilterButtons() {
             const container = document.getElementById('category-buttons-container');
             if (!container) return;
-            let html = `<button onclick="setCategoryFilter('All')" class="shrink-0 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition ${state.currentFilter === 'All' ? 'bg-blue-600 text-white' : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'}">All Clothes</button>`;
+            let html = `<button onclick="setCategoryFilter('All')" class="shrink-0 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition ${state.currentFilter === 'All' ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'}">All Items</button>`;
 
             state.categories.forEach(cat => {
                 const active = state.currentFilter.toLowerCase() === cat.toLowerCase();
-                html += `<button onclick="setCategoryFilter('${escapeHTML(cat)}')" class="shrink-0 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition ${active ? 'bg-blue-600 text-white' : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'}">${escapeHTML(cat)}</button>`;
+                html += `<button onclick="setCategoryFilter('${escapeHTML(cat)}')" class="shrink-0 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition ${active ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'}">${escapeHTML(cat)}</button>`;
             });
             container.innerHTML = html;
         }
@@ -1324,11 +1215,9 @@
             if (!container) return;
 
             let filtered = state.clothes;
-
             if (state.currentFilter !== 'All') {
                 filtered = filtered.filter(c => c.category.toLowerCase() === state.currentFilter.toLowerCase());
             }
-
             if (state.searchQuery.trim() !== '') {
                 filtered = filtered.filter(c => c.name.toLowerCase().includes(state.searchQuery.toLowerCase()));
             }
@@ -1346,27 +1235,25 @@
             const isAvailable = cloth.isAvailable !== false;
 
             return `
-                <div class="bg-slate-900/80 border border-slate-800 rounded-xl overflow-hidden hover:border-blue-500/50 transition-all duration-300 group flex flex-col justify-between ${!isAvailable ? 'opacity-75' : ''}">
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden hover:border-emerald-500/50 transition-all duration-300 group flex flex-col justify-between shadow-lg ${!isAvailable ? 'opacity-75' : ''}">
                     <div onclick="openProductModal(${cloth.id})" class="relative h-48 sm:h-64 bg-slate-950 overflow-hidden cursor-pointer">
                         <img src="${escapeHTML(mainImg)}" alt="${escapeHTML(cloth.name)}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                        <span class="absolute top-3 right-3 bg-slate-950/80 text-blue-400 text-[9px] sm:text-[10px] px-2.5 py-1 rounded-md font-bold uppercase tracking-wider border border-slate-800">${escapeHTML(cloth.category)}</span>
-                        ${!isAvailable ? `
-                            <span class="absolute top-3 left-3 bg-rose-600/90 text-white text-[9px] sm:text-[10px] px-2.5 py-1 rounded-md font-extrabold uppercase tracking-wider shadow">Sold Out</span>
-                        ` : ''}
+                        <span class="absolute top-3 right-3 bg-slate-950/80 text-emerald-400 text-[9px] sm:text-[10px] px-2.5 py-1 rounded-md font-bold uppercase tracking-wider border border-slate-800">${escapeHTML(cloth.category)}</span>
+                        ${!isAvailable ? `<span class="absolute top-3 left-3 bg-rose-600/90 text-white text-[9px] sm:text-[10px] px-2.5 py-1 rounded-md font-extrabold uppercase tracking-wider shadow">Sold Out</span>` : ''}
                     </div>
                     <div class="p-4 flex-1 flex flex-col justify-between space-y-3">
                         <div onclick="openProductModal(${cloth.id})" class="cursor-pointer">
                             <h4 class="font-bold text-white text-xs sm:text-sm tracking-wide line-clamp-1">${escapeHTML(cloth.name)}</h4>
                             <div class="flex items-center justify-between mt-0.5">
-                                <p class="text-blue-400 font-extrabold text-sm sm:text-base">Rs. ${cloth.price.toLocaleString()}</p>
+                                <p class="text-emerald-400 font-extrabold text-sm sm:text-base">Rs. ${cloth.price.toLocaleString()}</p>
                                 <span class="text-[10px] font-bold ${isAvailable ? 'text-emerald-400' : 'text-rose-400'} uppercase">${isAvailable ? 'In Stock' : 'Sold Out'}</span>
                             </div>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            <button onclick="addToCart(${cloth.id})" ${!isAvailable ? 'disabled' : ''} class="${isAvailable ? 'bg-slate-800 border-slate-700 hover:border-blue-500 text-slate-300 hover:text-white' : 'bg-slate-900 border-slate-800 text-slate-600 cursor-not-allowed'} border font-bold py-2 rounded-lg transition text-[11px] sm:text-xs flex items-center justify-center gap-1 uppercase tracking-wider">
+                            <button onclick="addToCart(${cloth.id})" ${!isAvailable ? 'disabled' : ''} class="${isAvailable ? 'bg-slate-800 border-slate-700 hover:border-emerald-500 text-slate-300 hover:text-white' : 'bg-slate-900 border-slate-800 text-slate-600 cursor-not-allowed'} border font-bold py-2 rounded-lg transition text-[11px] sm:text-xs flex items-center justify-center gap-1 uppercase tracking-wider">
                                 <i class="fa-solid fa-cart-plus"></i> Cart
                             </button>
-                            <button onclick="directBuyNow(${cloth.id})" ${!isAvailable ? 'disabled' : ''} class="${isAvailable ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-600/20' : 'bg-slate-800 text-slate-500 cursor-not-allowed'} font-extrabold py-2 rounded-lg transition text-[11px] sm:text-xs flex items-center justify-center gap-1 uppercase tracking-wider shadow-md">
+                            <button onclick="directBuyNow(${cloth.id})" ${!isAvailable ? 'disabled' : ''} class="${isAvailable ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/20' : 'bg-slate-800 text-slate-500 cursor-not-allowed'} font-extrabold py-2 rounded-lg transition text-[11px] sm:text-xs flex items-center justify-center gap-1 uppercase tracking-wider shadow-md">
                                 Buy Now
                             </button>
                         </div>
@@ -1385,7 +1272,7 @@
             const isAvailable = item.isAvailable !== false;
 
             const thumbsGalleryHTML = allImages.map((imgSrc) => `
-                <img src="${escapeHTML(imgSrc)}" onclick="setModalMainImage('${escapeHTML(imgSrc).replace(/'/g, "\\'")}')" class="w-16 h-16 object-cover rounded-lg bg-slate-950 border border-slate-800 hover:border-blue-500 cursor-pointer shrink-0 transition">
+                <img src="${escapeHTML(imgSrc)}" onclick="setModalMainImage('${escapeHTML(imgSrc).replace(/'/g, "\\'")}')" class="w-16 h-16 object-cover rounded-lg bg-slate-950 border border-slate-800 hover:border-emerald-500 cursor-pointer shrink-0 transition">
             `).join('');
 
             modalContent.innerHTML = `
@@ -1401,29 +1288,29 @@
                     <div class="space-y-5">
                         <div>
                             <div class="flex items-center justify-between">
-                                <span class="text-blue-400 text-[10px] font-extrabold uppercase tracking-widest">${escapeHTML(item.category)}</span>
+                                <span class="text-emerald-400 text-[10px] font-extrabold uppercase tracking-widest">${escapeHTML(item.category)}</span>
                                 <span class="text-xs font-bold ${isAvailable ? 'text-emerald-400' : 'text-rose-400'} uppercase">${isAvailable ? 'In Stock' : 'Sold Out'}</span>
                             </div>
                             <h2 class="text-xl sm:text-2xl font-black text-white uppercase tracking-wider mt-1">${escapeHTML(item.name)}</h2>
-                            <p class="text-xl sm:text-2xl font-black text-blue-400 mt-1">Rs. ${item.price.toLocaleString()}</p>
+                            <p class="text-xl sm:text-2xl font-black text-emerald-400 mt-1">Rs. ${item.price.toLocaleString()}</p>
                         </div>
                         <div class="space-y-2">
-                            <label class="text-xs font-bold text-slate-400 uppercase tracking-widest">Select Size:</label>
+                            <label class="text-xs font-bold text-slate-400 uppercase tracking-widest">Select Size / Fabric Option:</label>
                             <div class="flex flex-wrap gap-2">
                                 ${['S','M','L','XL','Unstitched'].map(sz => `
-                                    <button onclick="selectProductSize('${sz}', this)" class="size-btn px-3.5 py-2 rounded-lg text-xs font-bold uppercase transition border ${sz === 'M' ? 'border-blue-500 text-white bg-blue-600' : 'border-slate-800 text-slate-400 hover:border-slate-700'}">${sz}</button>
+                                    <button onclick="selectProductSize('${sz}', this)" class="size-btn px-3.5 py-2 rounded-lg text-xs font-bold uppercase transition border ${sz === 'M' ? 'border-emerald-500 text-white bg-emerald-600' : 'border-slate-800 text-slate-400 hover:border-slate-700'}">${sz}</button>
                                 `).join('')}
                             </div>
                         </div>
                         <div class="space-y-1">
                             <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Description:</h4>
-                            <p class="text-xs text-slate-300 leading-relaxed bg-slate-950 p-3.5 rounded-lg border border-slate-800">${escapeHTML(item.description || 'Verified luxury clothing by MT Store.')}</p>
+                            <p class="text-xs text-slate-300 leading-relaxed bg-slate-950 p-3.5 rounded-lg border border-slate-800">${escapeHTML(item.description || 'Verified luxury clothing by A.K Textiles.')}</p>
                         </div>
                         <div class="grid grid-cols-2 gap-3">
-                            <button onclick="addToCart(${item.id}); closeProductModal();" ${!isAvailable ? 'disabled' : ''} class="${isAvailable ? 'bg-slate-800 border-slate-700 hover:border-blue-500 text-white' : 'bg-slate-900 border-slate-800 text-slate-600 cursor-not-allowed'} border font-bold py-3 rounded-lg transition text-xs flex items-center justify-center gap-2 uppercase tracking-wider">
+                            <button onclick="addToCart(${item.id}); closeProductModal();" ${!isAvailable ? 'disabled' : ''} class="${isAvailable ? 'bg-slate-800 border-slate-700 hover:border-emerald-500 text-white' : 'bg-slate-900 border-slate-800 text-slate-600 cursor-not-allowed'} border font-bold py-3 rounded-lg transition text-xs flex items-center justify-center gap-2 uppercase tracking-wider">
                                 <i class="fa-solid fa-cart-plus"></i> Add To Bag
                             </button>
-                            <button onclick="directBuyNow(${item.id}); closeProductModal();" ${!isAvailable ? 'disabled' : ''} class="${isAvailable ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-600/30' : 'bg-slate-800 text-slate-500 cursor-not-allowed'} font-extrabold py-3 rounded-lg transition text-xs flex items-center justify-center gap-2 uppercase tracking-wider shadow-lg">
+                            <button onclick="directBuyNow(${item.id}); closeProductModal();" ${!isAvailable ? 'disabled' : ''} class="${isAvailable ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/30' : 'bg-slate-800 text-slate-500 cursor-not-allowed'} font-extrabold py-3 rounded-lg transition text-xs flex items-center justify-center gap-2 uppercase tracking-wider shadow-lg">
                                 Buy Now
                             </button>
                         </div>
@@ -1434,31 +1321,21 @@
             document.getElementById('product-detail-modal').classList.remove('hidden');
         }
 
-        function setModalMainImage(src) {
-            document.getElementById('modal-main-image-view').src = src;
-        }
-
-        function closeProductModal() {
-            document.getElementById('product-detail-modal').classList.add('hidden');
-        }
+        function setModalMainImage(src) { document.getElementById('modal-main-image-view').src = src; }
+        function closeProductModal() { document.getElementById('product-detail-modal').classList.add('hidden'); }
 
         function selectProductSize(size, btn) {
             state.selectedSize = size;
             document.querySelectorAll('.size-btn').forEach(b => {
-                b.classList.remove('border-blue-500', 'text-white', 'bg-blue-600');
+                b.classList.remove('border-emerald-500', 'text-white', 'bg-emerald-600');
                 b.classList.add('border-slate-800', 'text-slate-400');
             });
             btn.classList.remove('border-slate-800', 'text-slate-400');
-            btn.classList.add('border-blue-500', 'text-white', 'bg-blue-600');
+            btn.classList.add('border-emerald-500', 'text-white', 'bg-emerald-600');
         }
 
-        function showOrderSuccessModal() {
-            document.getElementById('order-success-modal').classList.remove('hidden');
-        }
-
-        function closeOrderSuccessModal() {
-            document.getElementById('order-success-modal').classList.add('hidden');
-        }
+        function showOrderSuccessModal() { document.getElementById('order-success-modal').classList.remove('hidden'); }
+        function closeOrderSuccessModal() { document.getElementById('order-success-modal').classList.add('hidden'); }
 
         function filterProducts() {
             state.searchQuery = document.getElementById('shop-search').value;
@@ -1472,7 +1349,7 @@
         }
 
         // =================================================================
-        // ADMIN
+        // ADMIN DASHBOARD
         // =================================================================
         function handleAdminBtnClick() {
             if (state.isAdminLoggedIn) openAdminDashboard();
@@ -1481,12 +1358,13 @@
 
         function openAdminModal() { document.getElementById('admin-login-modal').classList.remove('hidden'); }
         function closeAdminModal() { document.getElementById('admin-login-modal').classList.add('hidden'); }
+
         function verifyAdminPassword(e) {
             e.preventDefault();
             const entered = document.getElementById('admin-pass-input').value;
             if (entered === state.adminPassword) {
                 state.isAdminLoggedIn = true;
-                localStorage.setItem('mt_admin_auth', 'true');
+                localStorage.setItem('ak_admin_auth', 'true');
                 closeAdminModal();
                 openAdminDashboard();
                 showToast("Admin access granted.", "success");
@@ -1526,13 +1404,11 @@
             document.getElementById('admin-dashboard-modal').classList.remove('hidden');
         }
 
-        function closeAdminDashboard() {
-            document.getElementById('admin-dashboard-modal').classList.add('hidden');
-        }
+        function closeAdminDashboard() { document.getElementById('admin-dashboard-modal').classList.add('hidden'); }
 
         function adminLogout() {
             state.isAdminLoggedIn = false;
-            localStorage.removeItem('mt_admin_auth');
+            localStorage.removeItem('ak_admin_auth');
             closeAdminDashboard();
             showToast("Logged out from Admin Control Panel.", "info");
         }
@@ -1552,10 +1428,7 @@
             }
         }
 
-        // -----------------------------------------------------------------
-        // GALLERY IMAGE PICKER (device file -> compressed base64 data URL)
-        // -----------------------------------------------------------------
-        const MAX_IMAGE_DIMENSION = 900; // px, longest side after resize
+        const MAX_IMAGE_DIMENSION = 900;
         const IMAGE_JPEG_QUALITY = 0.72;
 
         function readFileAsDataURL(file) {
@@ -1586,14 +1459,10 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
 
-                    try {
-                        const compressed = canvas.toDataURL('image/jpeg', IMAGE_JPEG_QUALITY);
-                        resolve(compressed);
-                    } catch (err) {
-                        reject(err);
-                    }
+                    try { resolve(canvas.toDataURL('image/jpeg', IMAGE_JPEG_QUALITY)); }
+                    catch (err) { reject(err); }
                 };
-                img.onerror = () => reject(new Error('Could not load image for compression.'));
+                img.onerror = () => reject(new Error('Could not load image.'));
                 img.src = dataUrl;
             });
         }
@@ -1605,30 +1474,20 @@
             showToast(`Processing ${files.length} image(s)...`, "info");
 
             for (const file of files) {
-                if (!file.type.startsWith('image/')) {
-                    showToast(`Skipped "${file.name}" — not an image file.`, "warning");
-                    continue;
-                }
+                if (!file.type.startsWith('image/')) continue;
                 try {
                     const rawDataUrl = await readFileAsDataURL(file);
                     const compressedDataUrl = await compressImageDataURL(rawDataUrl);
-
-                    // Firebase Realtime Database has size limits per node; warn on very large images.
-                    const approxKB = Math.round((compressedDataUrl.length * 0.75) / 1024);
-                    if (approxKB > 700) {
-                        showToast(`"${file.name}" is still large (~${approxKB}KB) after compression — consider a smaller photo.`, "warning");
-                    }
-
                     state.uploadedImagesArray.push(compressedDataUrl);
                 } catch (err) {
-                    showToast(`Failed to process "${file.name}": ${err.message}`, "error");
+                    showToast(`Failed to process "${file.name}"`, "error");
                 }
             }
 
             syncUrlsInputFromPreview();
             renderUploadedPreviews();
-            event.target.value = ''; // allow re-selecting the same file again later
-            showToast("Images added to preview. Don't forget to Publish/Update.", "success");
+            event.target.value = '';
+            showToast("Images added to preview.", "success");
         }
 
         function renderUploadedPreviews() {
@@ -1644,7 +1503,7 @@
             container.classList.remove('hidden');
             grid.innerHTML = state.uploadedImagesArray.map((src, index) => `
                 <div class="relative group w-12 h-12">
-                    <img src="${escapeHTML(src)}" class="w-12 h-12 object-cover rounded bg-slate-950 border border-slate-700" onerror="this.src='https://via.placeholder.com/48?text=X'">
+                    <img src="${escapeHTML(src)}" class="w-12 h-12 object-cover rounded bg-slate-950 border border-slate-700">
                     <button type="button" onclick="removeSingleUploadedImage(${index})" class="absolute -top-1.5 -right-1.5 bg-rose-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-[9px] hover:bg-rose-500 shadow"><i class="fa-solid fa-xmark"></i></button>
                 </div>
             `).join('');
@@ -1663,15 +1522,12 @@
         }
 
         function syncUrlsInputFromPreview() {
-            // Data URLs contain commas, so we cannot safely join them with ",".
-            // Keep the visible text field as a human hint only when all entries are plain http(s) URLs;
-            // otherwise show a short status message instead of the raw base64 blobs.
             const allPlainUrls = state.uploadedImagesArray.every(u => /^https?:\/\//i.test(u));
             if (allPlainUrls) {
                 document.getElementById('form-urls').value = state.uploadedImagesArray.join(', ');
             } else {
                 document.getElementById('form-urls').value = '';
-                document.getElementById('form-urls').placeholder = `${state.uploadedImagesArray.length} image(s) selected from gallery (see preview below)`;
+                document.getElementById('form-urls').placeholder = `${state.uploadedImagesArray.length} image(s) selected from gallery`;
             }
         }
 
@@ -1684,11 +1540,8 @@
             const statusVal = document.getElementById('form-status').value;
             const urlInput = document.getElementById('form-urls').value.trim();
             const desc = document.getElementById('form-desc').value.trim();
-
             const isAvailable = statusVal === 'Available';
 
-            // Priority: gallery-picked images (state.uploadedImagesArray) take precedence.
-            // If admin typed plain URLs instead (and didn't pick gallery images), use those.
             let finalImagesList = [];
             if (state.uploadedImagesArray.length > 0) {
                 finalImagesList = [...state.uploadedImagesArray];
@@ -1700,20 +1553,19 @@
                 finalImagesList.push('https://images.unsplash.com/photo-1516762689617-e1cffffd478d?auto=format&fit=crop&w=600&q=80');
             }
 
-            const primaryImage = finalImagesList[0];
-            const submitBtn = document.getElementById('form-submit-btn');
-            submitBtn.disabled = true;
-            submitBtn.innerText = "Saving...";
-
             const productData = {
                 name,
                 price,
                 category,
                 isAvailable,
-                image: primaryImage,
+                image: finalImagesList[0],
                 images: finalImagesList,
                 description: desc
             };
+
+            const submitBtn = document.getElementById('form-submit-btn');
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Saving...";
 
             try {
                 if (editId) {
@@ -1743,14 +1595,12 @@
             document.getElementById('form-cat').value = item.category;
             document.getElementById('form-status').value = item.isAvailable !== false ? 'Available' : 'Sold Out';
 
-            const allImgs = item.images && item.images.length > 0 ? item.images : (item.image ? [item.image] : []);
-            state.uploadedImagesArray = allImgs;
+            state.uploadedImagesArray = item.images && item.images.length > 0 ? item.images : (item.image ? [item.image] : []);
             syncUrlsInputFromPreview();
             renderUploadedPreviews();
 
             document.getElementById('form-desc').value = item.description || '';
-
-            document.getElementById('form-title').innerHTML = `<i class="fa-solid fa-pen-to-square text-amber-400"></i> Edit Product Item`;
+            document.getElementById('form-title').innerHTML = `<i class="fa-solid fa-pen-to-square text-emerald-400"></i> Edit Product Item`;
             document.getElementById('form-submit-btn').innerText = "Update Item";
             document.getElementById('cancel-edit-btn').classList.remove('hidden');
 
@@ -1771,9 +1621,8 @@
         function resetForm() {
             document.getElementById('cloth-form').reset();
             clearSelectedImages();
-            document.getElementById('form-urls').placeholder = 'Image URLs separated by commas (,) — optional if you used gallery above';
             document.getElementById('edit-cloth-id').value = '';
-            document.getElementById('form-title').innerHTML = `<i class="fa-solid fa-plus text-blue-400"></i> Add New Clothes Item`;
+            document.getElementById('form-title').innerHTML = `<i class="fa-solid fa-plus text-emerald-400"></i> Add New Fabric / Clothes Item`;
             document.getElementById('form-submit-btn').innerText = "Publish Item";
             document.getElementById('cancel-edit-btn').classList.add('hidden');
         }
@@ -1789,9 +1638,9 @@
                 return;
             }
 
-            const updatedCategories = [...state.categories, newCat];
+            const updated = [...state.categories, newCat];
             try {
-                await rtdb.ref('categories').set(updatedCategories);
+                await rtdb.ref('categories').set(updated);
                 input.value = '';
                 showToast("Category added!", "success");
             } catch (err) {
@@ -1801,9 +1650,9 @@
 
         async function deleteCategory(catName) {
             showConfirm("Delete Category", `Are you sure you want to delete category "${catName}"?`, async () => {
-                const updatedCategories = state.categories.filter(c => c.toLowerCase() !== catName.toLowerCase());
+                const updated = state.categories.filter(c => c.toLowerCase() !== catName.toLowerCase());
                 try {
-                    await rtdb.ref('categories').set(updatedCategories);
+                    await rtdb.ref('categories').set(updated);
                     showToast("Category deleted.", "info");
                 } catch (err) {
                     showToast('Failed to delete category: ' + err.message, 'error');
@@ -1872,13 +1721,13 @@
                 <div class="p-3 bg-slate-900 border border-slate-800 rounded-lg text-xs space-y-2">
                     <div class="flex justify-between items-start gap-2 border-b border-slate-800 pb-2">
                         <div>
-                            <span class="text-[10px] font-bold text-blue-400 uppercase">${escapeHTML(order.orderId)}</span>
+                            <span class="text-[10px] font-bold text-emerald-400 uppercase">${escapeHTML(order.orderId)}</span>
                             <h5 class="font-bold text-white mt-0.5">${escapeHTML(order.customer_name)} (${escapeHTML(order.customer_phone)})</h5>
                             <p class="text-[10px] text-slate-400">${escapeHTML(order.customer_address)}</p>
-                            ${order.trxId ? `<p class="text-[10px] text-emerald-400 font-mono mt-0.5">TRX: ${escapeHTML(order.trxId)} (${escapeHTML(order.easypaisaAccountName || '')})</p>` : ''}
+                            ${order.trxId ? `<p class="text-[10px] text-emerald-400 font-mono mt-0.5">TRX ID: ${escapeHTML(order.trxId)}</p>` : ''}
                         </div>
                         <div class="text-right">
-                            <span class="font-mono font-bold text-blue-400 block">${escapeHTML(order.grand_total)}</span>
+                            <span class="font-mono font-bold text-emerald-400 block">${escapeHTML(order.grand_total)}</span>
                             <span class="text-[10px] font-bold uppercase ${order.status === 'Approved' ? 'text-emerald-400' : order.status === 'Rejected' ? 'text-rose-400' : 'text-amber-400'}">${escapeHTML(order.status || 'Placed')}</span>
                         </div>
                     </div>
@@ -1912,7 +1761,7 @@
             loadCart();
             updateCartBadge();
 
-            if (localStorage.getItem('mt_admin_auth') === 'true') {
+            if (localStorage.getItem('ak_admin_auth') === 'true') {
                 state.isAdminLoggedIn = true;
             }
 
@@ -1920,8 +1769,6 @@
             if (urlsInput) {
                 urlsInput.addEventListener('input', () => {
                     const urls = urlsInput.value.split(',').map(u => u.trim()).filter(u => u.length > 0);
-                    // Manual typing in this field only makes sense for plain URLs;
-                    // clear any gallery-picked base64 images to avoid mixing sources unexpectedly.
                     state.uploadedImagesArray = urls;
                     renderUploadedPreviews();
                 });
