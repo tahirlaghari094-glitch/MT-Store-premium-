@@ -66,8 +66,7 @@ const transporter = nodemailer.createTransport({
     auth: {
         user: OWNER_EMAIL,
         pass: GMAIL_APP_PASSWORD,
-    },
-    pool: false
+    }
 });
 
 // HTML-escaping helper
@@ -186,50 +185,7 @@ function generateCancellationEmailHTML(order) {
 
 // ---------------- API ROUTES ----------------
 
-// Route: Admin Password Verification
-app.post('/api/admin/verify-pass', async (req, res) => {
-    const { password } = req.body;
-    try {
-        let actualPass = "admin123"; // Default fallback
-        if (adminConfigRef) {
-            const snapshot = await adminConfigRef.child('password').once('value');
-            if (snapshot.exists()) actualPass = snapshot.val();
-        }
-        if (password === actualPass) {
-            return res.json({ success: true, message: 'Password Verified' });
-        } else {
-            return res.status(401).json({ success: false, error: 'Incorrect Admin Password' });
-        }
-    } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
-    }
-});
-
-// Route: Admin Password Change
-app.post('/api/admin/change-pass', async (req, res) => {
-    const { currentPass, newPass } = req.body;
-    if (!currentPass || !newPass) {
-        return res.status(400).json({ success: false, error: 'Both password fields are required' });
-    }
-    try {
-        let actualPass = "admin123";
-        if (adminConfigRef) {
-            const snapshot = await adminConfigRef.child('password').once('value');
-            if (snapshot.exists()) actualPass = snapshot.val();
-        }
-        if (currentPass !== actualPass) {
-            return res.status(401).json({ success: false, error: 'Current password does not match' });
-        }
-        if (adminConfigRef) {
-            await adminConfigRef.child('password').set(newPass);
-        }
-        res.json({ success: true, message: 'Password updated successfully' });
-    } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
-    }
-});
-
-// Route: New Order Notification
+// Route: New Order Notification & Save
 app.post('/api/orders/new', async (req, res) => {
     const order = req.body;
     if (!order || !order.orderId) {
@@ -238,7 +194,7 @@ app.post('/api/orders/new', async (req, res) => {
 
     try {
         if (ordersRef) {
-            await ordersRef.child(order.orderId).update({
+            await ordersRef.child(order.orderId).set({
                 ...order,
                 status: order.status || 'Placed',
                 paymentDone: order.paymentDone || false
@@ -253,7 +209,7 @@ app.post('/api/orders/new', async (req, res) => {
     const baseUrl = `${protocol}://${host}`;
 
     const mailOptions = {
-        from: `"MT Store" <${OWNER_EMAIL}>`,
+        from: `"A.K Textiles" <${OWNER_EMAIL}>`,
         to: OWNER_EMAIL,
         subject: `🛍️ New Order #${order.orderId} - ${order.paymentMethod || 'COD'} 📦`,
         html: generateOrderEmailHTML(order, baseUrl)
@@ -269,7 +225,7 @@ app.post('/api/orders/new', async (req, res) => {
     }
 });
 
-// Route: Cancel Order Notification
+// Route: Cancel Order Notification & Update DB
 app.post('/api/orders/cancel', async (req, res) => {
     const { orderId } = req.body;
     if (!orderId) {
@@ -283,15 +239,15 @@ app.post('/api/orders/cancel', async (req, res) => {
             const snapshot = await ordersRef.child(orderId).once('value');
             if (snapshot.exists()) {
                 orderData = { ...snapshot.val(), ...req.body };
-                await ordersRef.child(orderId).update({ status: 'Cancelled' });
             }
+            await ordersRef.child(orderId).update({ status: 'Cancelled' });
         }
     } catch (err) {
         console.error('Cancel order DB error:', err.message);
     }
 
     const mailOptions = {
-        from: `"MT Store Alerts" <${OWNER_EMAIL}>`,
+        from: `"A.K Textiles Alerts" <${OWNER_EMAIL}>`,
         to: OWNER_EMAIL,
         subject: `❌ Order Cancelled #${orderId}`,
         html: generateCancellationEmailHTML(orderData)
@@ -307,7 +263,7 @@ app.post('/api/orders/cancel', async (req, res) => {
     }
 });
 
-// Approve & Reject Routes
+// Approve & Reject Routes via Email Buttons
 app.get('/api/orders/approve/:orderId', async (req, res) => {
     const { orderId } = req.params;
     try {
@@ -337,10 +293,8 @@ app.get('/api/health', (req, res) => {
     res.json({ ok: true, server: 'running', time: new Date().toISOString() });
 });
 
-if (process.env.NODE_ENV !== 'production') {
-    app.listen(PORT, () => {
-        console.log(`Server running on http://localhost:${PORT}`);
-    });
-}
+app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+});
 
 module.exports = app;
