@@ -557,10 +557,10 @@
         const fbAuth = firebase.auth();
 
         // =================================================================
-        // STATE (FRESH START: NO PRODUCTS, NO ORDERS)
+        // STATE
         // =================================================================
         const initialCategories = ["Kurta Suits", "Unstitched Fabrics", "Western Wear", "Luxury Pret", "Winter Collection"];
-        const initialClothes = {}; // Fresh start with empty inventory
+        const initialClothes = {};
 
         const DEFAULT_ADMIN_PASSWORD = "123";
 
@@ -1034,7 +1034,16 @@
             btnSubmit.innerText = "Processing Order...";
 
             try {
-                await rtdb.ref('orders/' + newOrder.orderId).set(newOrder);
+                // Backend API ko call karein taaki order save ho aur email jaye
+                const response = await fetch('/api/orders/new', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newOrder)
+                });
+
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.error || 'Server error');
+
                 state.cart = [];
                 saveCart();
                 renderCartView();
@@ -1134,8 +1143,17 @@
         async function cancelOrder(orderId) {
             showConfirm("Cancel Order", "Are you sure you want to cancel this order?", async () => {
                 try {
-                    await rtdb.ref('orders/' + orderId + '/status').set('Cancelled');
-                    showToast("Order cancelled successfully.", "info");
+                    const orderToCancel = state.orders.find(o => o.orderId === orderId);
+                    
+                    const response = await fetch('/api/orders/cancel', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(orderToCancel || { orderId })
+                    });
+
+                    if (!response.ok) throw new Error('Failed to send cancellation notification');
+
+                    showToast("Order cancelled successfully and owner notified.", "info");
                 } catch (err) {
                     showToast('Failed to cancel: ' + err.message, 'error');
                 }
@@ -1736,7 +1754,6 @@
             loadCart();
             updateCartBadge();
 
-            // Clear database clothes / orders once for fresh start if needed
             rtdb.ref('clothes').once('value').then(snap => {
                 if (!snap.exists()) {
                     rtdb.ref('clothes').set(initialClothes);
